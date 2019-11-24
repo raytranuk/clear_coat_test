@@ -6886,7 +6886,7 @@ pc.shaderChunks.baseNineSlicedTiledPS = "#define NINESLICED\n#define NINESLICETI
 pc.shaderChunks.biasConstPS = "#define SHADOWBIAS\nfloat getShadowBias(float resolution, float maxBias) {\n    return maxBias;\n}\n";
 pc.shaderChunks.blurVSMPS = "\nvarying vec2 vUv0;\nuniform sampler2D source;\nuniform vec2 pixelOffset;\n#ifdef GAUSS\nuniform float weight[SAMPLES];\n#endif\n#ifdef PACKED\nfloat decodeFloatRG(vec2 rg) {\n    return rg.y*(1.0/255.0) + rg.x;\n}\nvec2 encodeFloatRG( float v ) {\n  vec2 enc = vec2(1.0, 255.0) * v;\n  enc = fract(enc);\n  enc -= enc.yy * vec2(1.0/255.0, 1.0/255.0);\n  return enc;\n}\n#endif\nvoid main(void) {\n    vec3 moments = vec3(0.0);\n    vec2 uv = vUv0 - pixelOffset * (float(SAMPLES) * 0.5);\n    for(int i=0; i<SAMPLES; i++) {\n        vec4 c = texture2D(source, uv + pixelOffset * float(i));\n        #ifdef PACKED\n        c.xy = vec2(decodeFloatRG(c.xy), decodeFloatRG(c.zw));\n        #endif\n        #ifdef GAUSS\n        moments += c.xyz * weight[i];\n        #else\n        moments += c.xyz;\n        #endif\n    }\n    #ifndef GAUSS\n    moments /= float(SAMPLES);\n    #endif\n    #ifdef PACKED\n    gl_FragColor = vec4(encodeFloatRG(moments.x), encodeFloatRG(moments.y));\n    #else\n    gl_FragColor = vec4(moments.x, moments.y, moments.z, 1.0);\n    #endif\n}\n";
 pc.shaderChunks.combineDiffusePS = "vec3 combineColor() {\n    return dAlbedo * dDiffuseLight;\n}\n";
-pc.shaderChunks.combineDiffuseSpecularPS = "vec3 combineColor() {\n    return mix(dAlbedo * dDiffuseLight, dSpecularLight + dReflection.rgb * dReflection.a, dSpecularity)+ccSpecularLight*ccSpecularity*ccAlpha;\n}\n";
+pc.shaderChunks.combineDiffuseSpecularPS = "vec3 combineColor() {\n    return mix(dAlbedo * dDiffuseLight, dSpecularLight + dReflection.rgb * dReflection.a, dSpecularity)+(ccSpecularLight*ccSpecularity+ccReflection.rgb*ccSpecularity*ccReflection.a)*ccAlpha;\n}\n";
 pc.shaderChunks.combineDiffuseSpecularNoConservePS = "vec3 combineColor() {\n    return dAlbedo * dDiffuseLight + (dSpecularLight + dReflection.rgb * dReflection.a) * dSpecularity;\n}\n";
 pc.shaderChunks.combineDiffuseSpecularNoReflPS = "vec3 combineColor() {\n    return dAlbedo * dDiffuseLight + dSpecularLight * dSpecularity;\n}\n";
 pc.shaderChunks.combineDiffuseSpecularNoReflSeparateAmbientPS = "uniform vec3 material_ambient;\nvec3 combineColor() {\n    return (dDiffuseLight - light_globalAmbient) * dAlbedo + dSpecularLight * dSpecularity + material_ambient * light_globalAmbient;\n}\n";
@@ -6911,7 +6911,7 @@ pc.shaderChunks.fogExpPS = "uniform vec3 fog_color;\nuniform float fog_density;\
 pc.shaderChunks.fogExp2PS = "uniform vec3 fog_color;\nuniform float fog_density;\nvec3 addFog(vec3 color) {\n    float depth = gl_FragCoord.z / gl_FragCoord.w;\n    float fogFactor = exp(-depth * depth * fog_density * fog_density);\n    fogFactor = clamp(fogFactor, 0.0, 1.0);\n    return mix(fog_color, color, fogFactor);\n}\n";
 pc.shaderChunks.fogLinearPS = "uniform vec3 fog_color;\nuniform float fog_start;\nuniform float fog_end;\nvec3 addFog(vec3 color) {\n    float depth = gl_FragCoord.z / gl_FragCoord.w;\n    float fogFactor = (fog_end - depth) / (fog_end - fog_start);\n    fogFactor = clamp(fogFactor, 0.0, 1.0);\n    fogFactor = gammaCorrectInput(fogFactor);\n    return mix(fog_color, color, fogFactor);\n}\n";
 pc.shaderChunks.fogNonePS = "vec3 addFog(vec3 color) {\n    return color;\n}\n";
-pc.shaderChunks.fresnelSchlickPS = "// Schlick's approximation\nuniform float material_fresnelFactor; // unused\nvoid getFresnel() {\n    float fresnel = 1.0 - max(dot(dNormalW, dViewDirW), 0.0);\n    float fresnel2 = fresnel * fresnel;\n    fresnel *= fresnel2 * fresnel2;    \n    float fresnelcc = fresnel * ccGlossiness * ccGlossiness;\n    fresnel *= dGlossiness * dGlossiness;\n    dSpecularity = dSpecularity + (1.0 - dSpecularity) * fresnel;\n    ccSpecularity = ccSpecularity + (1.0 - ccSpecularity) * fresnelcc;\n}\n";
+pc.shaderChunks.fresnelSchlickPS = "// Schlick's approximation\nuniform float material_fresnelFactor; // unused\nvoid getFresnel() {\n    float fresnel = 1.0 - max(dot(dNormalW, dViewDirW), 0.0);\n    float fresnel2 = fresnel * fresnel;\n    fresnel *= fresnel2 * fresnel2;    \n    fresnel *= dGlossiness * dGlossiness;\n    dSpecularity = dSpecularity + (1.0 - dSpecularity) * fresnel;\n    float fresnelcc = 1.0 - max(dot(ccNormalW, dViewDirW), 0.0);\n    float fresnel2cc = fresnelcc * fresnelcc;\n    fresnelcc *= fresnel2cc * fresnel2cc;    \n    fresnelcc *= ccGlossiness * ccGlossiness;\n    ccSpecularity = ccSpecularity + (1.0 - ccSpecularity) * fresnelcc;\n}\n";
 pc.shaderChunks.fullscreenQuadPS = "varying vec2 vUv0;\nuniform sampler2D source;\nvoid main(void) {\n    gl_FragColor = texture2D(source, vUv0);\n}\n";
 pc.shaderChunks.fullscreenQuadVS = "attribute vec2 vertex_position;\nvarying vec2 vUv0;\nvoid main(void)\n{\n    gl_Position = vec4(vertex_position, 0.5, 1.0);\n    vUv0 = vertex_position.xy*0.5+0.5;\n}\n";
 pc.shaderChunks.gamma1_0PS = "vec4 texture2DSRGB(sampler2D tex, vec2 uv) {\n    return texture2D(tex, uv);\n}\nvec4 texture2DSRGB(sampler2D tex, vec2 uv, float bias) {\n    return texture2D(tex, uv, bias);\n}\nvec4 textureCubeSRGB(samplerCube tex, vec3 uvw) {\n    return textureCube(tex, uvw);\n}\nvec3 gammaCorrectOutput(vec3 color) {\n    return color;\n}\nvec3 gammaCorrectInput(vec3 color) {\n    return color;\n}\nfloat gammaCorrectInput(float color) {\n    return color;\n}\nvec4 gammaCorrectInput(vec4 color) {\n    return color;\n}\n";
@@ -6933,9 +6933,9 @@ pc.shaderChunks.metalnessPS = "void processMetalness(float metalness) {\n    con
 pc.shaderChunks.msdfPS = "uniform sampler2D texture_msdfMap;\n#ifdef GL_OES_standard_derivatives\n#define USE_FWIDTH\n#endif\n#ifdef GL2\n#define USE_FWIDTH\n#endif\nfloat median(float r, float g, float b) {\n    return max(min(r, g), min(max(r, g), b));\n}\nfloat map (float min, float max, float v) {\n    return (v - min) / (max - min);\n}\nuniform float font_sdfIntensity; // intensity is used to boost the value read from the SDF, 0 is no boost, 1.0 is max boost\nuniform float font_pxrange;      // the number of pixels between inside and outside the font in SDF\nuniform float font_textureWidth; // the width of the texture atlas\nuniform vec4 outline_color;\nuniform float outline_thickness;\nuniform vec4 shadow_color;\nuniform vec2 shadow_offset;\nvec4 applyMsdf(vec4 color) {\n    // sample the field\n    vec3 tsample = texture2D(texture_msdfMap, vUv0).rgb;\n    vec2 uvShdw = vUv0 - shadow_offset;\n    vec3 ssample = texture2D(texture_msdfMap, uvShdw).rgb;\n    // get the signed distance value\n    float sigDist = median(tsample.r, tsample.g, tsample.b);\n    float sigDistShdw = median(ssample.r, ssample.g, ssample.b);\n    #ifdef USE_FWIDTH\n        // smoothing depends on size of texture on screen\n        vec2 w = fwidth(vUv0);\n        float smoothing = clamp(w.x * font_textureWidth / font_pxrange, 0.0, 0.5);\n    #else\n        float font_size = 16.0; // TODO fix this\n        // smoothing gets smaller as the font size gets bigger\n        // don't have fwidth we can approximate from font size, this doesn't account for scaling\n        // so a big font scaled down will be wrong...\n        float smoothing = clamp(font_pxrange / font_size, 0.0, 0.5);\n    #endif\n    float mapMin = 0.05;\n    float mapMax = clamp(1.0 - font_sdfIntensity, mapMin, 1.0);\n    // remap to a smaller range (used on smaller font sizes)\n    float sigDistInner = map(mapMin, mapMax, sigDist);\n    float sigDistOutline = map(mapMin, mapMax, sigDist + outline_thickness);\n    sigDistShdw = map(mapMin, mapMax, sigDistShdw + outline_thickness);\n    float center = 0.5;\n    // calculate smoothing and use to generate opacity\n    float inside = smoothstep(center-smoothing, center+smoothing, sigDistInner);\n    float outline = smoothstep(center-smoothing, center+smoothing, sigDistOutline);\n    float shadow = smoothstep(center-smoothing, center+smoothing, sigDistShdw);\n    vec4 tcolor = (outline > inside) ? outline * vec4(outline_color.a * outline_color.rgb, outline_color.a) : vec4(0.0);\n    tcolor = mix(tcolor, color, inside);\n    vec4 scolor = (shadow > outline) ? shadow * vec4(shadow_color.a * shadow_color.rgb, shadow_color.a) : tcolor;\n    tcolor = mix(scolor, tcolor, outline);\n    \n    return tcolor;\n}";
 pc.shaderChunks.normalVS = "vec3 getNormal() {\n    #ifdef SKIN\n        dNormalMatrix = mat3(dModelMatrix[0].xyz, dModelMatrix[1].xyz, dModelMatrix[2].xyz);\n    #elif defined(INSTANCING)\n        dNormalMatrix = mat3(instance_line1.xyz, instance_line2.xyz, instance_line3.xyz);\n    #else\n        dNormalMatrix = matrix_normal;\n    #endif\n    return normalize(dNormalMatrix * vertex_normal);\n}\n";
 pc.shaderChunks.normalInstancedVS = "vec3 getNormal() {\n    dNormalMatrix = mat3(instance_line1.xyz, instance_line2.xyz, instance_line3.xyz);\n    return normalize(dNormalMatrix * vertex_normal);\n}\n";
-pc.shaderChunks.normalMapPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpiness;\nvoid getNormal() {\n    vec3 normalMap = unpackNormal(texture2D(texture_normalMap, $UV));\n    dNormalMap = normalMap;\n    dNormalW = dTBN * normalMap;\n    vec3 normalMapcc = unpackNormal(texture2D(texture_normalMap, ($UV)*0.1));\n    normalMapcc = mix(vec3(0.0, 0.0, 1.0), normalMapcc, 0.02);\n    ccNormalW = normalize(dTBN * normalMapcc);\n}\n";
-pc.shaderChunks.normalMapFloatPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpiness;\nvoid getNormal() {\n    vec3 normalMap = unpackNormal(texture2D(texture_normalMap, $UV));\n    dNormalMap = normalMap;\n    normalMap = normalize(mix(vec3(0.0, 0.0, 1.0), normalMap, material_bumpiness));\n    dNormalW = dTBN * normalMap;\n    vec3 normalMapcc = unpackNormal(texture2D(texture_normalMap, ($UV)*0.1));\n    normalMapcc = mix(vec3(0.0, 0.0, 1.0), normalMapcc, 0.02);\n    ccNormalW = normalize(dTBN * normalMapcc);\n}\n";
-pc.shaderChunks.normalMapFloatTBNfastPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpiness;\nvoid getNormal() {\n    vec3 normalMap = unpackNormal(texture2D(texture_normalMap, $UV));\n    dNormalMap = normalMap;\n    normalMap = mix(vec3(0.0, 0.0, 1.0), normalMap, material_bumpiness);\n    dNormalW = normalize(dTBN * normalMap);\n    vec3 normalMapcc = unpackNormal(texture2D(texture_normalMap, ($UV)*0.1));\n    normalMapcc = mix(vec3(0.0, 0.0, 1.0), normalMapcc, 0.02);\n    ccNormalW = normalize(dTBN * normalMapcc);\n}\n";
+pc.shaderChunks.normalMapPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpiness;\nvoid getNormal() {\n    vec3 normalMap = unpackNormal(texture2D(texture_normalMap, $UV));\n    dNormalMap = normalMap;\n    dNormalW = dTBN * normalMap;\n    vec3 normalMapcc = unpackNormal(texture2D(texture_normalMap, ($UV)*0.1));\n    normalMapcc = mix(vec3(0.0, 0.0, 1.0), normalMapcc, 0.0);\n    ccNormalW = normalize(dTBN * normalMapcc);\n}\n";
+pc.shaderChunks.normalMapFloatPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpiness;\nvoid getNormal() {\n    vec3 normalMap = unpackNormal(texture2D(texture_normalMap, $UV));\n    dNormalMap = normalMap;\n    normalMap = normalize(mix(vec3(0.0, 0.0, 1.0), normalMap, material_bumpiness));\n    dNormalW = dTBN * normalMap;\n    vec3 normalMapcc = unpackNormal(texture2D(texture_normalMap, ($UV)*0.1));\n    normalMapcc = mix(vec3(0.0, 0.0, 1.0), normalMapcc, 0.0);\n    ccNormalW = normalize(dTBN * normalMapcc);\n}\n";
+pc.shaderChunks.normalMapFloatTBNfastPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpiness;\nvoid getNormal() {\n    vec3 normalMap = unpackNormal(texture2D(texture_normalMap, $UV));\n    dNormalMap = normalMap;\n    normalMap = mix(vec3(0.0, 0.0, 1.0), normalMap, material_bumpiness);\n    dNormalW = normalize(dTBN * normalMap);\n    vec3 normalMapcc = unpackNormal(texture2D(texture_normalMap, ($UV)*0.1));\n    normalMapcc = mix(vec3(0.0, 0.0, 1.0), normalMapcc, 0.0);\n    ccNormalW = normalize(dTBN * normalMapcc);\n}\n";
 pc.shaderChunks.normalSkinnedVS = "vec3 getNormal() {\n    dNormalMatrix = mat3(dModelMatrix[0].xyz, dModelMatrix[1].xyz, dModelMatrix[2].xyz);\n    return normalize(dNormalMatrix * vertex_normal);\n}\n";
 pc.shaderChunks.normalVertexPS = "void getNormal() {\n    dNormalW = normalize(dVertexNormalW);\n}\n";
 pc.shaderChunks.normalXYPS = "vec3 unpackNormal(vec4 nmap) {\n    vec3 normal;\n    normal.xy = nmap.wy * 2.0 - 1.0;\n    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));\n    return normal;\n}\n";
@@ -6992,10 +6992,11 @@ pc.shaderChunks.particle_wrapVS = "\n    vec3 origParticlePos = particlePos;\n  
 pc.shaderChunks.precisionTestPS = "void main(void) {\n    gl_FragColor = vec4(2147483648.0);\n}\n";
 pc.shaderChunks.precisionTest2PS = "uniform sampler2D source;\nvec4 packFloat(float depth) {\n    const vec4 bit_shift = vec4(256.0 * 256.0 * 256.0, 256.0 * 256.0, 256.0, 1.0);\n    const vec4 bit_mask  = vec4(0.0, 1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0);\n    vec4 res = mod(depth * bit_shift * vec4(255), vec4(256) ) / vec4(255);\n    res -= res.xxyz * bit_mask;\n    return res;\n}\nvoid main(void) {\n    float c = texture2D(source, vec2(0.0)).r;\n    float diff = abs(c - 2147483648.0) / 2147483648.0;\n    gl_FragColor = packFloat(diff);\n}\n";
 pc.shaderChunks.prefilterCubemapPS = "varying vec2 vUv0;\nuniform samplerCube source;\nuniform vec4 params;\nfloat saturate(float x) {\n    return clamp(x, 0.0, 1.0);\n}\nfloat rnd(vec2 uv) {\n    return fract(sin(dot(uv, vec2(12.9898, 78.233) * 2.0)) * 43758.5453);\n}\nconst float PI = 3.14159265358979;\nvec3 hemisphereSample_cos(vec2 uv, mat3 vecSpace, vec3 cubeDir, float gloss) { // cos + lerped cone size (better than just lerped)\n    float phi = uv.y * 2.0 * PI;\n    float cosTheta = sqrt(1.0 - uv.x);\n    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);\n    vec3 sampleDir = vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);\n    return normalize(mix(vecSpace * sampleDir, cubeDir, params.y));\n}\nvec3 hemisphereSample_phong(vec2 uv, mat3 vecSpace, vec3 cubeDir, float specPow) {\n    float phi = uv.y * 2.0 * PI;\n    float cosTheta = pow(1.0 - uv.x, 1.0 / (specPow + 1.0));\n    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);\n    vec3 sampleDir = vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);\n    return vecSpace * sampleDir;\n}\nmat3 matrixFromVector(vec3 n) { // frisvad\n    float a = 1.0 / (1.0 + n.z);\n    float b = -n.x * n.y * a;\n    vec3 b1 = vec3(1.0 - n.x * n.x * a, b, -n.x);\n    vec3 b2 = vec3(b, 1.0 - n.y * n.y * a, -n.y);\n    return mat3(b1, b2, n);\n}\nvec4 encodeRGBM(vec3 color) { // modified RGBM\n    vec4 encoded;\n    encoded.rgb = pow(color.rgb, vec3(0.5));\n    encoded.rgb *= 1.0 / 8.0;\n    encoded.a = saturate( max( max( encoded.r, encoded.g ), max( encoded.b, 1.0 / 255.0 ) ) );\n    encoded.a = ceil(encoded.a * 255.0) / 255.0;\n    encoded.rgb /= encoded.a;\n    return encoded;\n}\nvoid main(void) {\n    vec2 st = vUv0 * 2.0 - 1.0;\n    if (params.w==1.0 || params.w==3.0) {\n        st = 2.0 * floor(gl_FragCoord.xy) / (params.z - 1.0) - 1.0;\n    }\n    float face = params.x;\n    vec3 vec;\n    if (face==0.0) {\n        vec = vec3(1, -st.y, -st.x);\n    } else if (face==1.0) {\n        vec = vec3(-1, -st.y, st.x);\n    } else if (face==2.0) {\n        vec = vec3(st.x, 1, st.y);\n    } else if (face==3.0) {\n        vec = vec3(st.x, -1, -st.y);\n    } else if (face==4.0) {\n        vec = vec3(st.x, -st.y, 1);\n    } else {\n        vec = vec3(-st.x, -st.y, -1);\n    }\n    mat3 vecSpace = matrixFromVector(normalize(vec));\n    vec3 color = vec3(0.0);\n    const int samples = $NUMSAMPLES;\n    vec3 vect;\n    for(int i=0; i<samples; i++) {\n        float sini = sin(float(i));\n        float cosi = cos(float(i));\n        float rand = rnd(vec2(sini, cosi));\n        vect = hemisphereSample_$METHOD(vec2(float(i) / float(samples), rand), vecSpace, vec, params.y);\n        color += $textureCube(source, vect).rgb;\n    }\n    color /= float(samples);\n    gl_FragColor = params.w < 2.0? vec4(color, 1.0) : encodeRGBM(color);\n}\n";
-pc.shaderChunks.reflDirPS = "void getReflDir() {\n    dReflDirW = normalize(-reflect(dViewDirW, dNormalW));\n}\n";
+pc.shaderChunks.reflDirPS = "void getReflDir() {\n    dReflDirW = normalize(-reflect(dViewDirW, dNormalW));\n    ccReflDirW = normalize(-reflect(dViewDirW, ccNormalW));\n}\n";
 pc.shaderChunks.reflectionCubePS = "uniform samplerCube texture_cubeMap;\nuniform float material_reflectivity;\nvoid addReflection() {\n    vec3 lookupVec = fixSeams(cubeMapProject(dReflDirW));\n    lookupVec.x *= -1.0;\n    dReflection += vec4($textureCubeSAMPLE(texture_cubeMap, lookupVec).rgb, material_reflectivity);\n}\n";
 pc.shaderChunks.reflectionDpAtlasPS = "uniform sampler2D texture_sphereMap;\nuniform float material_reflectivity;\nvec2 getDpAtlasUv(vec2 uv, float mip) {\n    vec4 rect;\n    float sx = saturate(mip - 2.0);\n    rect.x = sx * 0.5;\n    float t = mip - rect.x * 6.0;\n    float i = 1.0 - rect.x;\n    rect.y = min(t * 0.5, 0.75) * i + rect.x;\n    float st = saturate(t);\n    rect.z = (1.0 - st * 0.5) * i;\n    rect.w = rect.z * 0.5;\n    float rcRectZ = 1.0 / rect.z;\n    float scaleFactor = 0.00390625 * rcRectZ; // 0.0078125 = (256 + 2) / 256 - 1, 0.00390625 same for 512\n    vec2 scale = vec2(scaleFactor, scaleFactor * 2.0);\n    uv = uv * (vec2(1.0) - scale) + scale * 0.5;\n    uv = uv * rect.zw + rect.xy;\n    return uv;\n}\nvoid addReflection() {\n    vec3 reflDir = normalize(cubeMapProject(dReflDirW));\n    // Convert vector to DP coords\n    bool up = reflDir.y > 0.0;\n    float scale = 0.90909090909090909090909090909091;// 1.0 / 1.1;\n    vec3 reflDirWarp = reflDir.xzx * vec3(-0.25, 0.5, 0.25);\n    float reflDirVer = abs(reflDir.y) + 1.0;\n    reflDirWarp /= reflDirVer;\n    reflDirWarp *= scale;\n    reflDirWarp = vec3(0.75, 0.5, 0.25) - reflDirWarp;\n    vec2 tc = up? reflDirWarp.xy : reflDirWarp.zy;\n    float bias = saturate(1.0 - dGlossiness) * 5.0; // multiply by max mip level\n    float mip = floor(bias);\n    vec3 tex1 = $texture2DSAMPLE(texture_sphereMap, getDpAtlasUv(tc, mip)).rgb;\n    mip = min(mip + 1.0, 5.0);\n    vec3 tex2 = $texture2DSAMPLE(texture_sphereMap, getDpAtlasUv(tc, mip)).rgb;\n    tex1 = mix(tex1, tex2, fract(bias));\n    tex1 = processEnvironment(tex1);\n    dReflection += vec4(tex1, material_reflectivity);\n}\n";
 pc.shaderChunks.reflectionPrefilteredCubePS = "uniform samplerCube texture_prefilteredCubeMap128;\nuniform samplerCube texture_prefilteredCubeMap64;\nuniform samplerCube texture_prefilteredCubeMap32;\nuniform samplerCube texture_prefilteredCubeMap16;\nuniform samplerCube texture_prefilteredCubeMap8;\n#ifndef PMREM4\n#define PMREM4\nuniform samplerCube texture_prefilteredCubeMap4;\n#endif\nuniform float material_reflectivity;\nvoid addReflection() {\n    // Unfortunately, WebGL doesn't allow us using textureCubeLod. Therefore bunch of nasty workarounds is required.\n    // We fix mip0 to 128x128, so code is rather static.\n    // Mips smaller than 4x4 aren't great even for diffuse. Don't forget that we don't have bilinear filtering between different faces.\n    float bias = saturate(1.0 - dGlossiness) * 5.0; // multiply by max mip level\n    int index1 = int(bias);\n    int index2 = int(min(bias + 1.0, 7.0));\n    vec3 fixedReflDir = fixSeams(cubeMapProject(dReflDirW), bias);\n    fixedReflDir.x *= -1.0;\n    vec4 cubes[6];\n    cubes[0] = textureCube(texture_prefilteredCubeMap128, fixedReflDir);\n    cubes[1] = textureCube(texture_prefilteredCubeMap64, fixedReflDir);\n    cubes[2] = textureCube(texture_prefilteredCubeMap32, fixedReflDir);\n    cubes[3] = textureCube(texture_prefilteredCubeMap16, fixedReflDir);\n    cubes[4] = textureCube(texture_prefilteredCubeMap8, fixedReflDir);\n    cubes[5] = textureCube(texture_prefilteredCubeMap4, fixedReflDir);\n    // Also we don't have dynamic indexing in PS, so...\n    vec4 cube[2];\n    for(int i = 0; i < 6; i++) {\n        if (i == index1) {\n            cube[0] = cubes[i];\n        }\n        if (i == index2) {\n            cube[1] = cubes[i];\n        }\n    }\n    // another variant\n    /*if (index1==0){ cube[0]=cubes[0];\n    }else if (index1==1){ cube[0]=cubes[1];\n    }else if (index1==2){ cube[0]=cubes[2];\n    }else if (index1==3){ cube[0]=cubes[3];\n    }else if (index1==4){ cube[0]=cubes[4];\n    }else if (index1==5){ cube[0]=cubes[5];}\n    if (index2==0){ cube[1]=cubes[0];\n    }else if (index2==1){ cube[1]=cubes[1];\n    }else if (index2==2){ cube[1]=cubes[2];\n    }else if (index2==3){ cube[1]=cubes[3];\n    }else if (index2==4){ cube[1]=cubes[4];\n    }else if (index2==5){ cube[1]=cubes[5];}*/\n    vec4 cubeFinal = mix(cube[0], cube[1], fract(bias));\n    vec3 refl = processEnvironment($DECODE(cubeFinal).rgb);\n    dReflection += vec4(refl, material_reflectivity);\n}\n";
+pc.shaderChunks.reflectionPrefilteredCubeCCPS = "/*uniform samplerCube texture_prefilteredCubeMap128;\nuniform samplerCube texture_prefilteredCubeMap64;\nuniform samplerCube texture_prefilteredCubeMap32;\nuniform samplerCube texture_prefilteredCubeMap16;\nuniform samplerCube texture_prefilteredCubeMap8;\n#ifndef PMREM4\n#define PMREM4\nuniform samplerCube texture_prefilteredCubeMap4;\n#endif\nuniform float material_reflectivity;*/\nvoid addReflectionCC() {\n    // Unfortunately, WebGL doesn't allow us using textureCubeLod. Therefore bunch of nasty workarounds is required.\n    // We fix mip0 to 128x128, so code is rather static.\n    // Mips smaller than 4x4 aren't great even for diffuse. Don't forget that we don't have bilinear filtering between different faces.\n    float bias = saturate(1.0 - ccGlossiness) * 5.0; // multiply by max mip level\n    int index1 = int(bias);\n    int index2 = int(min(bias + 1.0, 7.0));\n    vec3 fixedReflDir = fixSeams(cubeMapProject(ccReflDirW), bias);\n    fixedReflDir.x *= -1.0;\n    vec4 cubes[6];\n    cubes[0] = textureCube(texture_prefilteredCubeMap128, fixedReflDir);\n    cubes[1] = textureCube(texture_prefilteredCubeMap64, fixedReflDir);\n    cubes[2] = textureCube(texture_prefilteredCubeMap32, fixedReflDir);\n    cubes[3] = textureCube(texture_prefilteredCubeMap16, fixedReflDir);\n    cubes[4] = textureCube(texture_prefilteredCubeMap8, fixedReflDir);\n    cubes[5] = textureCube(texture_prefilteredCubeMap4, fixedReflDir);\n    // Also we don't have dynamic indexing in PS, so...\n    vec4 cube[2];\n    for(int i = 0; i < 6; i++) {\n        if (i == index1) {\n            cube[0] = cubes[i];\n        }\n        if (i == index2) {\n            cube[1] = cubes[i];\n        }\n    }\n    // another variant\n    /*if (index1==0){ cube[0]=cubes[0];\n    }else if (index1==1){ cube[0]=cubes[1];\n    }else if (index1==2){ cube[0]=cubes[2];\n    }else if (index1==3){ cube[0]=cubes[3];\n    }else if (index1==4){ cube[0]=cubes[4];\n    }else if (index1==5){ cube[0]=cubes[5];}\n    if (index2==0){ cube[1]=cubes[0];\n    }else if (index2==1){ cube[1]=cubes[1];\n    }else if (index2==2){ cube[1]=cubes[2];\n    }else if (index2==3){ cube[1]=cubes[3];\n    }else if (index2==4){ cube[1]=cubes[4];\n    }else if (index2==5){ cube[1]=cubes[5];}*/\n    vec4 cubeFinal = mix(cube[0], cube[1], fract(bias));\n    vec3 refl = processEnvironment($DECODE(cubeFinal).rgb);\n    ccReflection += vec4(refl, material_reflectivity);\n}\n";
 pc.shaderChunks.reflectionPrefilteredCubeLodPS = "\n#ifndef PMREM4\n#define PMREM4\n#extension GL_EXT_shader_texture_lod : enable\nuniform samplerCube texture_prefilteredCubeMap128;\n#endif\nuniform float material_reflectivity;\nvoid addReflection() {\n    float bias = saturate(1.0 - dGlossiness) * 5.0; // multiply by max mip level\n    vec3 fixedReflDir = fixSeams(cubeMapProject(dReflDirW), bias);\n    fixedReflDir.x *= -1.0;\n    vec3 refl = processEnvironment($DECODE( textureCubeLodEXT(texture_prefilteredCubeMap128, fixedReflDir, bias) ).rgb);\n    dReflection += vec4(refl, material_reflectivity);\n}\n";
 pc.shaderChunks.reflectionSpherePS = "#ifndef VIEWMATRIX\n#define VIEWMATRIX\nuniform mat4 matrix_view;\n#endif\nuniform sampler2D texture_sphereMap;\nuniform float material_reflectivity;\nvoid addReflection() {\n    vec3 reflDirV = (mat3(matrix_view) * dReflDirW).xyz;\n    float m = 2.0 * sqrt( dot(reflDirV.xy, reflDirV.xy) + (reflDirV.z+1.0)*(reflDirV.z+1.0) );\n    vec2 sphereMapUv = reflDirV.xy / m + 0.5;\n    dReflection += vec4($texture2DSAMPLE(texture_sphereMap, sphereMapUv).rgb, material_reflectivity);\n}\n";
 pc.shaderChunks.reflectionSphereLowPS = "uniform sampler2D texture_sphereMap;\nuniform float material_reflectivity;\nvoid addReflection() {\n    vec3 reflDirV = vNormalV;\n    vec2 sphereMapUv = reflDirV.xy * 0.5 + 0.5;\n    dReflection += vec4($texture2DSAMPLE(texture_sphereMap, sphereMapUv).rgb, material_reflectivity);\n}\n";
@@ -7023,12 +7024,12 @@ pc.shaderChunks.skyboxPS = "varying vec3 vViewDir;\nuniform samplerCube texture_
 pc.shaderChunks.skyboxVS = "attribute vec3 aPosition;\n#ifndef VIEWMATRIX\n#define VIEWMATRIX\nuniform mat4 matrix_view;\n#endif\nuniform mat4 matrix_projection;\nvarying vec3 vViewDir;\nvoid main(void)\n{\n    mat4 view = matrix_view;\n    view[3][0] = view[3][1] = view[3][2] = 0.0;\n    gl_Position = matrix_projection * view * vec4(aPosition, 1.0);\n    // Force skybox to far Z, regardless of the clip planes on the camera\n    // Subtract a tiny fudge factor to ensure floating point errors don't\n    // still push pixels beyond far Z. See:\n    // http://www.opengl.org/discussion_boards/showthread.php/171867-skybox-problem\n    gl_Position.z = gl_Position.w - 0.00001;\n    vViewDir = aPosition;\n    vViewDir.x *= -1.0;\n}\n";
 pc.shaderChunks.skyboxHDRPS = "varying vec3 vViewDir;\nuniform samplerCube texture_cubeMap;\nvoid main(void) {\n    vec3 color = processEnvironment($textureCubeSAMPLE(texture_cubeMap, fixSeamsStatic(vViewDir, $FIXCONST)).rgb);\n    color = toneMap(color);\n    color = gammaCorrectOutput(color);\n    gl_FragColor = vec4(color, 1.0);\n}\n";
 pc.shaderChunks.skyboxPrefilteredCubePS = "varying vec3 vViewDir;\nuniform samplerCube texture_cubeMap;\nvec3 fixSeamsStretch(vec3 vec, float mipmapIndex, float cubemapSize) {\n    float scale = 1.0 - exp2(mipmapIndex) / cubemapSize;\n    float M = max(max(abs(vec.x), abs(vec.y)), abs(vec.z));\n    if (abs(vec.x) != M) vec.x *= scale;\n    if (abs(vec.y) != M) vec.y *= scale;\n    if (abs(vec.z) != M) vec.z *= scale;\n    return vec;\n}\nvoid main(void) {\n    vec3 color = textureCubeRGBM(texture_cubeMap, fixSeamsStretch(vViewDir, 0.0, 128.0));\n    color = toneMap(color);\n    color = gammaCorrectOutput(color);\n    gl_FragColor = vec4(color, 1.0);\n}\n";
-pc.shaderChunks.specularPS = "#ifdef MAPCOLOR\nuniform vec3 material_specular;\n#endif\n#ifdef MAPTEXTURE\nuniform sampler2D texture_specularMap;\n#endif\nvoid getSpecularity() {\n    dSpecularity = vec3(1.0);\n    ccSpecularity = vec3(0.2);\n    #ifdef MAPCOLOR\n        dSpecularity *= material_specular;\n    #endif\n    #ifdef MAPTEXTURE\n        dSpecularity *= texture2D(texture_specularMap, $UV).$CH;\n    #endif\n    #ifdef MAPVERTEX\n        dSpecularity *= saturate(vVertexColor.$VC);\n    #endif\n}\n";
+pc.shaderChunks.specularPS = "#ifdef MAPCOLOR\nuniform vec3 material_specular;\n#endif\n#ifdef MAPTEXTURE\nuniform sampler2D texture_specularMap;\n#endif\nvoid getSpecularity() {\n    dSpecularity = vec3(1.0);\n    ccSpecularity = vec3(0.1);\n    #ifdef MAPCOLOR\n        dSpecularity *= material_specular;\n    #endif\n    #ifdef MAPTEXTURE\n        dSpecularity *= texture2D(texture_specularMap, $UV).$CH;\n    #endif\n    #ifdef MAPVERTEX\n        dSpecularity *= saturate(vVertexColor.$VC);\n    #endif\n}\n";
 pc.shaderChunks.specularAaNonePS = "float antiAliasGlossiness(float power) {\n    return power;\n}\n";
 pc.shaderChunks.specularAaToksvigPS = "float antiAliasGlossiness(float power) {\n    float rlen = 1.0 / saturate(length(dNormalMap));\n    float toksvig = 1.0 / (1.0 + power * (rlen - 1.0));\n    return power * toksvig;\n}\n";
 pc.shaderChunks.specularAaToksvigFloatPS = "float antiAliasGlossiness(float power) {\n    float rlen = 1.0 / saturate(length(dNormalMap));\n    float toksvig = 1.0 / (1.0 + power * (rlen - 1.0));\n    return power * mix(1.0, toksvig, material_bumpiness);\n}\n";
 pc.shaderChunks.spotPS = "float getSpotEffect(vec3 lightSpotDirW, float lightInnerConeAngle, float lightOuterConeAngle) {\n    float cosAngle = dot(dLightDirNormW, lightSpotDirW);\n    return smoothstep(lightOuterConeAngle, lightInnerConeAngle, cosAngle);\n}\n";
-pc.shaderChunks.startPS = "\nvoid main(void) {\n    dDiffuseLight = vec3(0);\n    dSpecularLight = vec3(0);\n    dReflection = vec4(0);\n    dSpecularity = vec3(0);\n";
+pc.shaderChunks.startPS = "\nvoid main(void) {\n    dDiffuseLight = vec3(0);\n    dSpecularLight = vec3(0);\n    dReflection = vec4(0);\n    ccReflection = vec4(0);\n    dSpecularity = vec3(0);\n    ccSpecularity = vec3(0);\n";
 pc.shaderChunks.startVS = "\nvoid main(void) {\n    gl_Position = getPosition();\n";
 pc.shaderChunks.startNineSlicedPS = "    nineSlicedUv = vUv0;\n";
 pc.shaderChunks.startNineSlicedTiledPS = "\n    vec2 tileMask = step(vMask, vec2(0.99999));\n    vec2 clampedUv = mix(innerOffset.xy*0.5, vec2(1.0) - innerOffset.zw*0.5, fract(vTiledUv));\n    clampedUv = clampedUv * atlasRect.zw + atlasRect.xy;\n    nineSlicedUv = vUv0 * tileMask + clampedUv * (vec2(1.0) - tileMask);\n";
@@ -8234,6 +8235,9 @@ f:_oldChunkTransformScreenSpace}, transformScreenSpaceBatchSkinned:{n:"transform
           code += chunks.reflectionPrefilteredCubeLodPS.replace(/\$DECODE/g, reflectionDecode);
         } else {
           code += chunks.reflectionPrefilteredCubePS.replace(/\$DECODE/g, reflectionDecode);
+          if (options.useSpecular && true) {
+            code += chunks.reflectionPrefilteredCubeCCPS.replace(/\$DECODE/g, reflectionDecode);
+          }
         }
       } else {
         code += chunks.reflectionCubePS.replace(/\$textureCubeSAMPLE/g, options.rgbmReflection ? "textureCubeRGBM" : options.hdrReflection ? "textureCube" : "textureCubeSRGB");
@@ -8441,6 +8445,9 @@ f:_oldChunkTransformScreenSpace}, transformScreenSpaceBatchSkinned:{n:"transform
   if (lighting || reflections) {
     if (cubemapReflection || options.sphereMap || options.dpAtlas) {
       code += "   addReflection();\n";
+      if (options.useSpecular && true) {
+        code += "   addReflectionCC();\n";
+      }
     }
     if (options.dirLightMap) {
       code += "   addDirLightMap();\n";
@@ -8597,6 +8604,9 @@ f:_oldChunkTransformScreenSpace}, transformScreenSpaceBatchSkinned:{n:"transform
   if (code.includes("dReflection")) {
     structCode += "vec4 dReflection;\n";
   }
+  if (code.includes("ccReflection")) {
+    structCode += "vec4 ccReflection;\n";
+  }
   if (code.includes("dTBN")) {
     structCode += "mat3 dTBN;\n";
   }
@@ -8626,6 +8636,9 @@ f:_oldChunkTransformScreenSpace}, transformScreenSpaceBatchSkinned:{n:"transform
   }
   if (code.includes("dReflDirW")) {
     structCode += "vec3 dReflDirW;\n";
+  }
+  if (code.includes("ccReflDirW")) {
+    structCode += "vec3 ccReflDirW;\n";
   }
   if (code.includes("dDiffuseLight")) {
     structCode += "vec3 dDiffuseLight;\n";
@@ -8664,13 +8677,13 @@ f:_oldChunkTransformScreenSpace}, transformScreenSpaceBatchSkinned:{n:"transform
     structCode += "float dGlossiness;\n";
   }
   if (code.includes("ccGlossiness")) {
-    structCode += "float ccGlossiness=0.7;\n";
+    structCode += "float ccGlossiness=0.9;\n";
   }
   if (code.includes("dAlpha")) {
     structCode += "float dAlpha;\n";
   }
   if (code.includes("ccAlpha")) {
-    structCode += "float ccAlpha=0.5f;\n";
+    structCode += "float ccAlpha=1.0;\n";
   }
   if (code.includes("dAtten")) {
     structCode += "float dAtten;\n";
@@ -44843,6 +44856,7 @@ return pc;
 }));
 
 
+
     </script>
     <link href="../style.css" rel="stylesheet" />
 </head>
@@ -44855,13 +44869,25 @@ return pc;
     <script>
         var canvas = document.getElementById("application-canvas");
         // Create the application and start the update loop
-        var app = new pc.Application(canvas);
-        app.start();
+        canvas.focus();
+
+// Create the application and start the update loop
+var app = new pc.Application(canvas, {
+    mouse: new pc.Mouse(canvas),
+    keyboard: new pc.Keyboard(window)
+});
+
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
         app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
         app.setCanvasResolution(pc.RESOLUTION_AUTO);
         app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
+    </script>
+
+<script src="first_person_camera.js"></script>
+
+<script>  
+        app.start();
  /*       var url = "Helipad.dds";
         app.assets.loadFromUrl(url, "texture", function (err, texture) {
             app.scene.setSkybox(texture);
@@ -44872,7 +44898,7 @@ return pc;
         // Create a Entity with a Box model component
         var box = new pc.Entity();
         box.addComponent("model", {
-            type: "box",
+            type: "capsule",
         });
  /*       var box = new pc.Entity();
         // Load a model file and create a Entity with a model component
@@ -44905,7 +44931,7 @@ return pc;
         var light = new pc.Entity();
         light.addComponent("light", {
             type: "point",
-            color: new pc.Color(1, 1, 1),
+            color: new pc.Color(0.1, 0.1, 0.1),
             radius: 10
         });
         light.addComponent("model", {
@@ -44917,7 +44943,7 @@ return pc;
         var light2 = new pc.Entity();
         light2.addComponent("light", {
             type: "point",
-            color: new pc.Color(1, 1, 1),
+            color: new pc.Color(0.1, 0.1, 0.1),
             radius: 10
         });
         light2.addComponent("model", {
@@ -44929,7 +44955,7 @@ return pc;
         var light3 = new pc.Entity();
         light3.addComponent("light", {
             type: "point",
-            color: new pc.Color(1, 1, 1),
+            color: new pc.Color(0.1, 0.1, 0.1),
             radius: 10
         });
         light3.addComponent("model", {
@@ -44941,7 +44967,7 @@ return pc;
         var light4 = new pc.Entity();
         light4.addComponent("light", {
             type: "point",
-            color: new pc.Color(1, 1, 1),
+            color: new pc.Color(0.1, 0.1, 0.1),
             radius: 10
         });
         light4.addComponent("model", {
@@ -44953,17 +44979,23 @@ return pc;
         // Create an Entity with a camera component
         var camera = new pc.Entity();
         camera.addComponent("camera", {
-            clearColor: new pc.Color(0.4, 0.45, 0.5)
+            clearColor: new pc.Color(0.5, 0.5, 0.8),
+            nearClip: 0.3,
+            farClip: 30
         });
+        // add the first person camera script to the camera
+        camera.addComponent("script");
+        camera.script.create("firstPersonCamera");
+
         // Add the new Entities to the hierarchy
         app.root.addChild(box);
-        app.root.addChild(light);
+ /*       app.root.addChild(light);
         app.root.addChild(light2);
         app.root.addChild(light3);
-        app.root.addChild(light4);      
+        app.root.addChild(light4);  */    
         app.root.addChild(camera);
         // Move the camera 10m along the z-axis
-        camera.translate(0, 0, 5);
+        camera.translate(0, 0, 3);
         // Set an update function on the app's update event
         var angle = 0;
         app.on("update", function (dt) {
@@ -44972,15 +45004,16 @@ return pc;
                 angle = 0;
             }
             // Move the light in a circle
-            light.setLocalPosition(2 * Math.sin(angle), 0, 2 * Math.cos(angle));
-            light2.setLocalPosition(1 * Math.cos(angle), 0, 1 * Math.sin(angle));
-            light3.setLocalPosition(-1 * Math.cos(angle), 0, -1 * Math.sin(angle));
-            light4.setLocalPosition(-1 * Math.sin(angle), 0, -1 * Math.cos(angle));
+            light.setLocalPosition(5 * Math.sin(angle), 0, 5 * Math.cos(angle));
+            light2.setLocalPosition(5 * Math.cos(angle), 0, 5 * Math.sin(angle));
+            light3.setLocalPosition(-5 * Math.cos(angle), 0, -5 * Math.sin(angle));
+            light4.setLocalPosition(-5 * Math.sin(angle), 0, -5 * Math.cos(angle));
             // Rotate the box
             box.setEulerAngles(angle*2, angle*4, angle*8);
+            //camera.setEulerAngles(angle*2, angle*4, angle*8);
         });
         // load a texture, create material and apply to box
-        app.assets.loadFromUrl("T_CarbonFiber_N_02.png", "texture", function (err, asset) {
+        app.assets.loadFromUrl("T_CarbonFiber_N_03.png", "texture", function (err, asset) {
             var material = new pc.StandardMaterial();
             material.diffuse = new pc.Color(0.2, 0.2, 0.2);
             material.normalMap = asset.resource;
@@ -44990,6 +45023,40 @@ return pc;
             material.update();
             box.model.material = material;
         });
+
+    var data = {
+    name: 'helipad',
+    cubemap: 'Helipad/Helipad.dds',
+    textures: [
+        'Helipad/Helipad_negx.png',
+        'Helipad/Helipad_posx.png',
+        'Helipad/Helipad_posy.png',
+        'Helipad/Helipad_negy.png',
+        'Helipad/Helipad_negz.png',
+        'Helipad/Helipad_posz.png'
+        ]
+    };
+
+var textures = data.textures.map(function(v, i) {
+    var asset = new pc.Asset(data.name + '-' + i, 'texture', { url: v }); 
+    app.assets.add(asset);
+    return asset.id;
+});
+
+var cubemap = new pc.Asset(
+    data.name,
+    'cubemap',
+    { url: data.cubemap },
+    {
+        anisotropy: 1,
+        magFilter: 1,
+        minFilter: 5,
+        rgbm: true,
+        textures: textures
+    }
+);
+
+app.setSkybox(cubemap)
     </script>
 </body>
 </html>
