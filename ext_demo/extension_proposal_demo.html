@@ -226,7 +226,10 @@
         app.root.addChild(particles2);
         particles2.setLocalPosition(0, 1, 0);
 
-        // load snowflake texture
+        //preload this?
+        app.assets.loadFromUrl('./assets/fonts/Arial-v4/ArialA.png', 'texture'/*, function (err, asset) {}*/);
+
+        // load spark texture
         app.assets.loadFromUrl('./assets/textures/spark.png', 'texture', function (err, asset) {
 
             // when texture is loaded add particlesystem component to entity
