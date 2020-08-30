@@ -443,7 +443,7 @@
             particles2.enabled = false;            
             if (ppFlag!=true) camera.camera.postEffects.addEffect(outline);
             ppFlag=true;        
-            stageTime=time+30.0;
+            stageTime=time+15.0;
             text.enabled=false;
         });
 
@@ -454,7 +454,7 @@
             ppFlag=false; 
             typeStep2=1;          
             text2.element.outlineThickness=5.0;
-            stageTime=time+30.0;  
+            stageTime=time+15.0;  
             text.enabled=false;    
         });        
 
@@ -464,7 +464,7 @@
             typeStep2=0;          
             particles.enabled = true;
             particles2.enabled = true;
-            stageTime=time+30.0;
+            stageTime=time+15.0;
             text.enabled=false;
         }); 
 
@@ -504,7 +504,7 @@
                     }          
                     else if (demoStage==4)
                     {
-                        stageTime=time+30.0;
+                        stageTime=time+15.0;
                     }                      
                 }
                 else if (stageTime>time)
@@ -515,7 +515,7 @@
                     }
                     if (demoStage==4)
                     {    
-                        if (button1.enabled==false && (stageTime-time)<28.0)
+                        if (button1.enabled==false && (stageTime-time)<13.0)
                         {
                             typeStep2=1;
                             button1.enabled=true;
@@ -525,7 +525,7 @@
 
                         if (typeStep2)
                         {
-                            text2.element.outlineThickness=((Math.cos((30.0-(stageTime-time))*2)+1)*0.4+0.2)*5.0;
+                            text2.element.outlineThickness=((Math.cos((15.0-(stageTime-time))*2)+1)*0.4+0.2)*5.0;
                         }
                     }
                 }
