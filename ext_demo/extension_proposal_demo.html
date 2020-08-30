@@ -505,15 +505,18 @@
                     else if (demoStage==4)
                     {
                         stageTime=time+30.0;
-                        typeStep2=1;
-                        button1.enabled=true;
-                        button2.enabled=true;
-                        button3.enabled=true;
                     }                      
                 }
                 else if (stageTime>time)
                 {
-          
+                    if (button1.enabled==false && (stageTime-time)<28.0)
+                    {
+                        typeStep2=1;
+                        button1.enabled=true;
+                        button2.enabled=true;
+                        button3.enabled=true;
+                    }
+
                     if (ppFlag==true)
                     {
                         outline.color.set((Math.sin(time*16.0)+1.0)*0.5, 0, 0, 1);
@@ -552,12 +555,14 @@
                         ppFlag=false;
                         particles.enabled = false;
                         particles2.enabled = false;
+                        text2.element.outlineThickness=5.0;
                         typeStep2=0;
                         button1.enabled=false;
                         button2.enabled=false;
                         button3.enabled=false;                        
                         typeStep=1;
                         text.enabled=true;
+                        text.element.rangeStart = 0;
                     }                                                             
                 }
             }
