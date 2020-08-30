@@ -227,7 +227,7 @@
         particles2.setLocalPosition(0, 1, 0);
 
         //preload this?
-        app.assets.loadFromUrl('./assets/fonts/Arial-v4/ArialA.png', 'texture'/*, function (err, asset) {}*/);
+        app.assets.loadFromUrl('./assets/fonts/Arial-v4/ArialA.png', 'texture', function (err, asset) {});
 
         // load spark texture
         app.assets.loadFromUrl('./assets/textures/spark.png', 'texture', function (err, asset) {
@@ -509,20 +509,20 @@
                 }
                 else if (stageTime>time)
                 {
-                    if (button1.enabled==false && (stageTime-time)<28.0)
-                    {
-                        typeStep2=1;
-                        button1.enabled=true;
-                        button2.enabled=true;
-                        button3.enabled=true;
-                    }
-
                     if (ppFlag==true)
                     {
                         outline.color.set((Math.sin(time*16.0)+1.0)*0.5, 0, 0, 1);
                     }
                     if (demoStage==4)
                     {    
+                        if (button1.enabled==false && (stageTime-time)<28.0)
+                        {
+                            typeStep2=1;
+                            button1.enabled=true;
+                            button2.enabled=true;
+                            button3.enabled=true;
+                        }
+
                         if (typeStep2)
                         {
                             text2.element.outlineThickness=((Math.cos((30.0-(stageTime-time))*2)+1)*0.4+0.2)*5.0;

@@ -1,5 +1,5 @@
 /*
- * PlayCanvas Engine v1.27.0-dev revision 7124db94
+ * PlayCanvas Engine v1.27.0-dev revision 4fdf47f1
  * Copyright 2011-2020 PlayCanvas Ltd. All rights reserved.
  */
 ;(function (root, factory) {
@@ -166,7 +166,7 @@ if (!String.prototype.startsWith) {
   }
   return result;
 }();
-var pc = {version:"1.27.0-dev", revision:"7124db94", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
+var pc = {version:"1.27.0-dev", revision:"4fdf47f1", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
   console.warn("pc.unpack has been deprecated and will be removed shortly. Please update your code.");
 }, makeArray:function(arr) {
   var i, ret = [], length = arr.length;
@@ -43557,6 +43557,7 @@ Object.assign(pc, function() {
     var textures = new Array(numTextures);
     var loader = this._loader;
     var textures2 = null;
+    var numLoaded2 = 0;
     var loadTexture = function(index) {
       if (data.version >= 4) {
         textures2 = new Array(numTextures);
@@ -43570,6 +43571,10 @@ Object.assign(pc, function() {
           }
           texture.upload();
           textures2[index] = texture;
+          numLoaded2++;
+          if (numLoaded === numTextures && numLoaded2 === numTextures) {
+            callback(null, [textures, textures2]);
+          }
         };
         if (index === 0) {
           loader.load(url.replace(".png", "A.png"), "texture", onLoaded2);
@@ -43588,7 +43593,7 @@ Object.assign(pc, function() {
         texture.upload();
         textures[index] = texture;
         numLoaded++;
-        if (numLoaded === numTextures) {
+        if (numLoaded === numTextures && (textures2 === null || numLoaded2 === numTextures)) {
           callback(null, [textures, textures2]);
         }
       };
