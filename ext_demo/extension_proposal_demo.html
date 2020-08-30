@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PlayCanvas Model Outline</title>
+    <title>WebGL EXT_shader_framebuffer_fetch extension proposal demo </title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="icon" type="image/png" href="../playcanvas-favicon.png" />
@@ -113,7 +113,6 @@
         var outline = new pc.OutlineEffect(app.graphicsDevice);
         outline.color = new pc.Color(0, 0, 1, 1);
         outline.texture = texture;
-        //camera.camera.postEffects.addEffect(outline);
         var ppFlag=false;
 
         app.root.addChild(camera);
@@ -134,10 +133,7 @@
         window.addEventListener("resize", function () {
             app.resizeCanvas(canvas.width, canvas.height);
 
-            if (ppFlag)
-            {
-                camera.camera.postEffects.removeEffect(outline);
-            }
+            if (ppFlag==true) camera.camera.postEffects.removeEffect(outline);
 
             app.scene.layers.remove(outlineLayer);
 
@@ -157,10 +153,8 @@
             app.scene.layers.insert(outlineLayer, 0);
 
             outline.texture = texture;
-            if (ppFlag)
-            {
-                camera.camera.postEffects.addEffect(outline);
-            }
+
+            if (ppFlag==true) camera.camera.postEffects.addEffect(outline);
         });
 
         // Offset position
@@ -471,9 +465,9 @@
             text.element.rangeStart = loremIpsum.length-28;
         }); 
 
-        button1.enabled=false;
-        button2.enabled=false;
-        button3.enabled=false;
+        //button1.enabled=false;
+        //button2.enabled=false;
+        //button3.enabled=false;
 
         // update things each frame
         app.on("update", function (dt) {
@@ -491,7 +485,7 @@
                     if (demoStage==1)
                     {
                         stageTime=time+4.0;
-                        camera.camera.postEffects.addEffect(outline);
+                        if (ppFlag==false) camera.camera.postEffects.addEffect(outline);
                         ppFlag=true;
                     }
                     else if (demoStage==2)
@@ -522,9 +516,9 @@
                         {
                             text.element.rangeStart = loremIpsum.length-28;
                             //typeStep2=1;
-                            button1.enabled=true;
-                            button2.enabled=true;
-                            button3.enabled=true;
+                            //button1.enabled=true;
+                            //button2.enabled=true;
+                            //button3.enabled=true;
                         }
 
                         if (typeStep2)
@@ -538,7 +532,7 @@
                     stageTime=0;
                     if (demoStage==1)
                     {                    
-                        camera.camera.postEffects.removeEffect(outline);
+                        if (ppFlag==true) camera.camera.postEffects.removeEffect(outline);
                         ppFlag=false;
                         typeStep=1;
                     }   
@@ -561,9 +555,9 @@
                         particles2.enabled = false;
                         text2.element.outlineThickness=5.0;
                         typeStep2=0;
-                        button1.enabled=false;
-                        button2.enabled=false;
-                        button3.enabled=false;                        
+                        //button1.enabled=false;
+                        //button2.enabled=false;
+                        //button3.enabled=false;                        
                         typeStep=1;
                         text.enabled=true;
                         text.element.rangeStart = 0;
