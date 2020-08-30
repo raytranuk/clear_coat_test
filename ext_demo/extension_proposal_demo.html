@@ -372,10 +372,12 @@
                 if (typeStep2==0)
                 {
                     text2.element.rangeEnd = 0;
+                    text2.enabled=false;
                 }
                 else
                 {
                     text2.element.rangeEnd += typeStep2;
+                    text2.enabled=true;
                 }
                 if (text2.element.rangeEnd >= text2.element.text.length) {
                     text2.element.rangeEnd = text2.element.text.length;
