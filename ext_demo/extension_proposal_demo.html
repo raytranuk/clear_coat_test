@@ -444,7 +444,8 @@
             if (ppFlag!=true) camera.camera.postEffects.addEffect(outline);
             ppFlag=true;        
             stageTime=time+15.0;
-            text.enabled=false;
+            //text.enabled=false;
+            text.element.rangeStart = 90;
         });
 
         button2.button.on('click', function (e) {
@@ -455,7 +456,8 @@
             typeStep2=1;          
             text2.element.outlineThickness=5.0;
             stageTime=time+15.0;  
-            text.enabled=false;    
+            //text.enabled=false;
+            text.element.rangeStart = 90;    
         });        
 
         button3.button.on('click', function (e) {
@@ -465,7 +467,8 @@
             particles.enabled = true;
             particles2.enabled = true;
             stageTime=time+15.0;
-            text.enabled=false;
+            //text.enabled=false;
+            text.element.rangeStart = 90;
         }); 
 
         button1.enabled=false;
@@ -562,7 +565,7 @@
                         button3.enabled=false;                        
                         typeStep=1;
                         text.enabled=true;
-                        text.element.rangeStart = 0;
+                        text.element.rangeEnd = 0;
                     }                                                             
                 }
             }
