@@ -445,7 +445,7 @@
             ppFlag=true;        
             stageTime=time+15.0;
             //text.enabled=false;
-            text.element.rangeStart = 90;
+            text.element.rangeStart = loremIpsum.length-28;
         });
 
         button2.button.on('click', function (e) {
@@ -457,7 +457,7 @@
             text2.element.outlineThickness=5.0;
             stageTime=time+15.0;  
             //text.enabled=false;
-            text.element.rangeStart = 90;    
+            text.element.rangeStart = loremIpsum.length-28;    
         });        
 
         button3.button.on('click', function (e) {
@@ -468,7 +468,7 @@
             particles2.enabled = true;
             stageTime=time+15.0;
             //text.enabled=false;
-            text.element.rangeStart = 90;
+            text.element.rangeStart = loremIpsum.length-28;
         }); 
 
         button1.enabled=false;
@@ -565,6 +565,7 @@
                         button3.enabled=false;                        
                         typeStep=1;
                         text.enabled=true;
+                        text.element.rangeStart = 0;
                         text.element.rangeEnd = 0;
                     }                                                             
                 }
