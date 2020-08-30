@@ -444,7 +444,7 @@
             if (ppFlag!=true) camera.camera.postEffects.addEffect(outline);
             ppFlag=true;        
             stageTime=time+15.0;
-            //text.enabled=false;
+            text.enabled=true;
             text.element.rangeStart = loremIpsum.length-28;
         });
 
@@ -456,8 +456,8 @@
             typeStep2=1;          
             text2.element.outlineThickness=5.0;
             stageTime=time+15.0;  
-            //text.enabled=false;
-            text.element.rangeStart = loremIpsum.length-28;    
+            text.enabled=false;
+            //text.element.rangeStart = loremIpsum.length-28;    
         });        
 
         button3.button.on('click', function (e) {
@@ -467,7 +467,7 @@
             particles.enabled = true;
             particles2.enabled = true;
             stageTime=time+15.0;
-            //text.enabled=false;
+            text.enabled=true;
             text.element.rangeStart = loremIpsum.length-28;
         }); 
 
@@ -518,9 +518,10 @@
                     }
                     if (demoStage==4)
                     {    
-                        if (button1.enabled==false && (stageTime-time)<13.0)
+                        if (button1.enabled==false && (stageTime-time)<11.0)
                         {
-                            typeStep2=1;
+                            text.element.rangeStart = loremIpsum.length-28;
+                            //typeStep2=1;
                             button1.enabled=true;
                             button2.enabled=true;
                             button3.enabled=true;
