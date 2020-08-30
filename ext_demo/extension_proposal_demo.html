@@ -440,6 +440,7 @@
             stageTime=time+15.0;
             text.enabled=true;
             text.element.rangeStart = loremIpsum.length-28;
+            text.element.rangeEnd = loremIpsum.length;
         });
 
         button2.button.on('click', function (e) {
@@ -463,6 +464,7 @@
             stageTime=time+15.0;
             text.enabled=true;
             text.element.rangeStart = loremIpsum.length-28;
+            text.element.rangeEnd = loremIpsum.length;
         }); 
 
         //button1.enabled=false;
@@ -515,6 +517,7 @@
                         if (button1.enabled==false && (stageTime-time)<11.0)
                         {
                             text.element.rangeStart = loremIpsum.length-28;
+                            text.element.rangeEnd = loremIpsum.length;
                             //typeStep2=1;
                             //button1.enabled=true;
                             //button2.enabled=true;
