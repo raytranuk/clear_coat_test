@@ -35,7 +35,7 @@
     </script>
 
     <!-- Include some post effects -->
-    <script src="../assets/scripts/posteffects/posteffect-graph.js"></script>
+    <script src="./assets/scripts/posteffects/posteffect-graph.js"></script>
     <!-- The script -->
     <script>
         // Start the update loop
@@ -185,7 +185,7 @@
         var entity, light, camera;
 
         // Load a model file and create a Entity with a model component
-        var url = "../assets/models/statue.glb";
+        var url = "./assets/models/statue.glb";
         app.assets.loadFromUrl(url, "container", function (err, asset) {
             entity = new pc.Entity();
             entity.addComponent("model", {
