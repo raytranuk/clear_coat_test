@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PlayCanvas Post Process Shader Graph</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="icon" type="image/png" href="./playcanvas-favicon.png" />
+    <script src="./playcanvas.js"></script>
+    <script src="./playcanvas-extras.js"></script>
+    <style>
+        body { 
+            margin: 0;
+            overflow-y: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- The canvas element -->
+    <canvas id="application-canvas"></canvas>
+
+    <script>
+        function createMaterial(colors) {
+            var material = new pc.StandardMaterial();
+            for (var param in colors) {
+                material[param] = colors[param];
+            }
+            material.update();
+            return material;
+        }
+
+        // create the application
+        var canvas = document.getElementById("application-canvas");
+        var app = new pc.Application(canvas);
+    </script>
+
+    <!-- Include some post effects -->
+    <script src="../assets/scripts/posteffects/posteffect-graph.js"></script>
+    <!-- The script -->
+    <script>
+        // Start the update loop
+        app.start();
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+        window.addEventListener("resize", function () {
+            app.resizeCanvas(canvas.width, canvas.height);
+        });
+        
+        var nodeMaterials={};
+        var textures={};
+        var graphPP;
+
+        function getTextureValue(value)
+        {
+            var textureName = value.base64_name;
+            textures[textureName] = new pc.Texture( this.app.graphicsDevice, {
+            } );
+
+            const img = document.createElement( 'img' );
+            img.src = value.base64_data;
+            img.crossOrigin = 'anonymous';
+            img.onload = ( e ) => {
+                textures[textureName].setSource( img );
+                // this callback could be a problem?
+            };
+
+            return textures[textureName];
+        }
+
+        function parseGraphDataJSON(graphDataString) {
+            function reviver(key, value) {
+                if (value instanceof Object)
+                {
+                    const ObjKeys = Object.keys(value);
+                    if (ObjKeys.length == 1 && ObjKeys[0] === 'subgName')
+                    {
+                        return nodeMaterials[value.subgName];
+                    }
+                }
+                if (key === 'valueTex')
+                {
+                    return getTextureValue(value);
+                }
+                return value;
+            }
+            return JSON.parse(graphDataString, reviver.bind(this));
+        }
+
+        function setNodeList(nodeListString)
+        {
+            var subGraphNodeList=JSON.parse(nodeListString);
+
+             // first pass - register all unregistered subgraphs
+            Object.keys(subGraphNodeList).forEach((key) => {
+                nodeMaterials[key] = new pc.NodeMaterial();
+            });
+
+            // second pass - update all sub graph definitions in the import list
+            Object.keys(subGraphNodeList).forEach((key) => {
+                var code = subGraphNodeList[key].code
+                if (subGraphNodeList[key].code.startsWith('{"ioPorts":')) 
+                {
+                    nodeMaterials[key].graphData = parseGraphDataJSON(code, nodeMaterials);
+                    nodeMaterials[key].dirtyShader = true;
+                }
+                else
+                {
+                    nodeMaterials[key].graphData.ioPorts = [];
+                    nodeMaterials[key].graphData.customFuncGlsl = code;
+                    nodeMaterials[key].genCustomFuncVars();
+                    nodeMaterials[key].dirtyShader = true;
+                }
+            });
+
+            //hook up shader to Post process
+            if (nodeMaterials['ppGraph'])
+            {
+                nodeMaterials['ppGraph']._ppDebug=1; // temp debug
+
+                graphPP = new pc.GraphEffect(app.graphicsDevice, nodeMaterials['ppGraph']);
+                camera.camera.postEffects.addEffect(graphPP);
+            }
+        }
+
+        const url_string = window.location.href;
+        const url_options = new URL(url_string);
+        const url_nodeList = url_options.searchParams.get("nodeList");
+
+        // set node list if in URL options
+        if (url_nodeList) setNodeList(url_nodeList);
+
+        function dropHandler(evt) {
+            evt.stopPropagation();
+            evt.preventDefault();
+            var files = evt.dataTransfer.files;
+            // Loop through the FileList and read
+            for (var i = 0, f; f = files[i]; i++) {
+        
+                // Only process json files.
+                if (!f.type.match('application/json')) {
+                    continue;
+                }
+        
+                var reader = new FileReader();
+        
+                // Closure to capture the file information.
+                reader.onload = (function(theFile) {
+                return function(e) {
+                    setNodeList(e.target.result);
+                };
+                })(f);
+        
+                reader.readAsText(f);
+            }
+        }
+
+        // configure drag and drop
+        const preventDefault = function (ev) {
+            ev.preventDefault();
+        };
+
+        window.addEventListener('dragenter', preventDefault, false);
+        window.addEventListener('dragover', preventDefault, false);
+        window.addEventListener('drop', this.dropHandler.bind(this), false);
+
+        var miniStats = new pcx.MiniStats(app);
+
+        app.scene.ambientLight = new pc.Color(0.4, 0.4, 0.4);
+
+        // Generate some materials to assigm to scene objects
+        var gray = createMaterial({
+            ambient: new pc.Color(0.1, 0.1, 0.1),
+            diffuse: new pc.Color(0.5, 0.5, 0.5)
+        });
+        var white = createMaterial({
+            emissive: new pc.Color(1, 1, 1)
+        });
+        var blue = createMaterial({
+            diffuse: new pc.Color(0, 0, 0),
+            emissive: new pc.Color(0, 0, 1)
+        });
+
+        var entity, light, camera;
+
+        // Load a model file and create a Entity with a model component
+        var url = "../assets/models/statue.glb";
+        app.assets.loadFromUrl(url, "container", function (err, asset) {
+            entity = new pc.Entity();
+            entity.addComponent("model", {
+                type: "asset",
+                asset: asset.resource.model,
+                castShadows: true
+            });
+            app.root.addChild(entity);
+        });
+
+        // Create an Entity with a camera component
+        var camera = new pc.Entity();
+        camera.addComponent("camera", {
+            clearColor: new pc.Color(0.4, 0.45, 0.5)
+        });
+        camera.translate(0, 7, 24);
+        camera.rotate(0, 0, 0);
+
+        // Create an Entity for the ground
+        var ground = new pc.Entity();
+        ground.addComponent("model", {
+            type: "box"
+        });
+        ground.setLocalScale(50, 1, 50);
+        ground.setLocalPosition(0, -0.5, 0);
+        ground.model.material = gray;
+
+        // Create an spot light
+        var light = new pc.Entity();
+        light.addComponent("light", {
+            type: "spot",
+            color: new pc.Color(1, 1, 1),
+            outerConeAngle: 60,
+            innerConeAngle: 40,
+            range: 100,
+            intensity: 1,
+            castShadows: true,
+            shadowBias: 0.005,
+            normalOffsetBias: 0.01,
+            shadowResolution: 2048
+        });
+
+        var cone = new pc.Entity();
+        cone.addComponent("model", {
+            type: "cone"
+        });
+        cone.model.material = white;
+        light.addChild(cone);
+
+        // Create a point light
+        var pointlight = new pc.Entity();
+        pointlight.addComponent("light", {
+            type: "point",
+            color: new pc.Color(0, 0, 1),
+            range: 100,
+            intensity: 1
+        });
+        pointlight.addComponent("model", {
+            type: "sphere"
+        });
+        pointlight.model.material = blue;
+
+        // Add Entities into the scene hierarchy
+        app.root.addChild(camera);
+        app.root.addChild(light);
+        app.root.addChild(pointlight);
+        app.root.addChild(ground);
+
+        // Simple update loop to rotate the light
+        var radius = 20;
+        var height = 5;
+        var angle = 0;
+        var time = 0;
+
+        var pointRadius = 5;
+        var pointHeight = 10;
+
+        var hasEffects = true;
+        var onKeyDown = function (e) {
+            if (e.key === pc.KEY_SPACE) {
+                if (hasEffects) {
+                    camera.camera.postEffects.removeEffect(graphPP);
+                } else {
+                    camera.camera.postEffects.addEffect(graphPP);
+                }
+                hasEffects = !hasEffects;
+            }
+            e.event.preventDefault(); // Use original browser event to prevent browser action.
+        };
+        var keyboard = new pc.Keyboard(document.body);
+        keyboard.on("keydown", onKeyDown, this);
+
+        app.on("update", function (dt) {
+            angle += 20 * dt;
+            if (angle > 360) {
+                angle -= 360;
+            }
+            if (entity) {
+                light.lookAt(entity.getPosition());
+                light.rotateLocal(90, 0, 0);
+                light.setLocalPosition(radius * Math.sin(angle * pc.math.DEG_TO_RAD), height, radius * Math.cos(angle * pc.math.DEG_TO_RAD));
+                // light.enabled = false;
+
+                pointlight.setLocalPosition(pointRadius * Math.sin(-2 * angle * pc.math.DEG_TO_RAD), pointHeight, pointRadius * Math.cos(-2 * angle * pc.math.DEG_TO_RAD));
+            }
+
+            time+=dt;
+            if (nodeMaterials['ppGraph']) nodeMaterials['ppGraph'].setParameter('uTime', time);
+
+        });
+    </script>
+</body>
+</html>
