@@ -234,7 +234,7 @@
         });
         camera.translate(0, 7, 24);
         camera.rotate(0, 0, 0);
-
+/*
         // Create an Entity for the ground
         var ground = new pc.Entity();
         ground.addComponent("model", {
@@ -243,7 +243,7 @@
         ground.setLocalScale(50, 1, 50);
         ground.setLocalPosition(0, -0.5, 0);
         ground.model.material = gray;
-
+/*
         // Create an spot light
         var light = new pc.Entity();
         light.addComponent("light", {
@@ -278,11 +278,11 @@
             type: "sphere"
         });
         pointlight.model.material = blue;
-
+*/
         // Add Entities into the scene hierarchy
         app.root.addChild(camera);
-        app.root.addChild(light);
-        app.root.addChild(pointlight);
+//        app.root.addChild(light);
+//        app.root.addChild(pointlight);
 //        app.root.addChild(ground);
         //app.root.addChild(cyl);
 
@@ -345,7 +345,7 @@
         mouse.on(pc.EVENT_MOUSEMOVE, onMouseMove, this);
 
         app.on("update", function (dt) {
-            angle += 20 * dt;
+        /*    angle += 20 * dt;
             if (angle > 360) {
                 angle -= 360;
             }
@@ -356,7 +356,7 @@
                 // light.enabled = false;
 
                 pointlight.setLocalPosition(pointRadius * Math.sin(-2 * angle * pc.math.DEG_TO_RAD), pointHeight, 0.0+pointRadius * Math.cos(-2 * angle * pc.math.DEG_TO_RAD));
-            }
+            }*/
 
             time+=dt;
             
