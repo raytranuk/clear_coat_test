@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.34.0-dev revision 06ea0fbe
+ * PlayCanvas Engine v1.34.0-dev revision 811ffc4d
  * Copyright 2011-2020 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -447,7 +447,7 @@
 		return result;
 	}();
 	var version = "1.34.0-dev";
-	var revision = "06ea0fbe";
+	var revision = "811ffc4d";
 	var config = { };
 	var common = { };
 	var apps = { };
@@ -7266,7 +7266,8 @@
 				code += chunks.gles3PS;
 			}
 			code += options.forceFragmentPrecision ? "precision " + options.forceFragmentPrecision + " float;\n\n" : precisionCode(device);
-			if (options.previewPort)
+			code += 'uniform vec3 view_position;\n';
+			if (options.previewPort && !options._debugFlag)
 			{
 				code += '#define PREVIEW_MAT;\n';
 			}
@@ -23794,7 +23795,7 @@
 			if (pre_this) pre_this.setParameter("uTime", pre_time);
 			for (var n = 0; n < this.graphData.ioPorts.length; n++) {
 				var ioPort = this.graphData.ioPorts[n];
-				if (ioPort.name.startsWith('IN_') || (ioPort.name.startsWith('CONST_') && ioPort.type === 'sampler2D')) {
+				if ((ioPort.name.startsWith('IN_') || (ioPort.name.startsWith('CONST_') && ioPort.type === 'sampler2D')) && !ioPort.name.endsWith('RT')) {
 					var matId = '_' + this.id;
 					switch (ioPort.type) {
 						case 'sampler2D':
@@ -32877,17 +32878,21 @@
 				var order = 0;
 				var i;
 				var start = layerList.length - 1;
-				for (i = start; i >= 0; i--) {
-					if (layerList[i].id === LAYERID_UI) {
-						start = i - 1;
-						this._origOverrideClear = layerList[i].overrideClear;
-						this._origClearColorBuffer = layerList[i].clearColorBuffer;
-						this._origDepthColorBuffer = layerList[i].clearDepthBuffer;
-						this._origStencilColorBuffer = layerList[i].clearStencilBuffer;
-						layerList[i].overrideClear = true;
-						layerList[i].clearColorBuffer = false;
-						layerList[i].clearDepthBuffer = this.camera.clearDepthBuffer;
-						layerList[i].clearStencilBuffer = this.camera.clearStencilBuffer;
+				for (i = start; i >= 0; i--)
+				{
+					{
+						if (layerList[i].id === LAYERID_UI)
+						{
+							start = i - 1;
+							this._origOverrideClear = layerList[i].overrideClear;
+							this._origClearColorBuffer = layerList[i].clearColorBuffer;
+							this._origDepthColorBuffer = layerList[i].clearDepthBuffer;
+							this._origStencilColorBuffer = layerList[i].clearStencilBuffer;
+							layerList[i].overrideClear = true;
+							layerList[i].clearColorBuffer = false;
+							layerList[i].clearDepthBuffer = this.camera.clearDepthBuffer;
+							layerList[i].clearStencilBuffer = this.camera.clearStencilBuffer;
+						}
 						break;
 					}
 				}
@@ -33029,13 +33034,15 @@
 				var layerList = this.app.scene.layers.layerList;
 				var start = layerList.length - 1;
 				for (i = 0; i <= layerList.length; i++) {
-					if (layerList[i].id === LAYERID_UI) {
-						start = i - 1;
-						layerList[i].overrideClear = this._origOverrideClear;
-						layerList[i].clearColorBuffer = this._origClearColorBuffer;
-						layerList[i].clearDepthBuffer = this._origDepthColorBuffer;
-						layerList[i].clearStencilBuffer = this._origStencilColorBuffer;
-						break;
+					{
+						if (layerList[i].id === LAYERID_UI) {
+							start = i - 1;
+							layerList[i].overrideClear = this._origOverrideClear;
+							layerList[i].clearColorBuffer = this._origClearColorBuffer;
+							layerList[i].clearDepthBuffer = this._origDepthColorBuffer;
+							layerList[i].clearStencilBuffer = this._origStencilColorBuffer;
+							break;
+						}
 					}
 				}
 				for (i = start; i >= 0; i--) {

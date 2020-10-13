@@ -4,7 +4,7 @@
     <title>PlayCanvas Post Effect Graph</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <link rel="icon" type="image/png" href="../playcanvas-favicon.png" />
+    <link rel="icon" type="image/png" href="./playcanvas-favicon.png" />
     <script src="./playcanvas.js"></script>
     <script src="./playcanvas-extras.js"></script>
     <script src="./wasm-loader.js"></script>
@@ -205,8 +205,6 @@
         var entity, light, camera;
 
         // Load a model file and create a Entity with a model component
-        // var url = "../assets/models/statue.glb";
-        // var url = "../assets/models/out.glb";
         var url = "./assets/models/out-draco.glb";
         app.assets.loadFromUrl(url, "container", function (err, asset) {
             entity = new pc.Entity();
