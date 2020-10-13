@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="icon" type="image/png" href="./playcanvas-favicon.png" />
     <script src="./playcanvas.js"></script>
-    <script src="./playcanvas-extras.js"></script>
     <script src="./wasm-loader.js"></script>
     <style>
         body { 
@@ -185,8 +184,6 @@
         window.addEventListener('dragover', preventDefault, false);
         window.addEventListener('drop', this.dropHandler.bind(this), false);
 
-        var miniStats = new pcx.MiniStats(app);
-
         app.scene.ambientLight = new pc.Color(0.4, 0.4, 0.4);
 
         // Generate some materials to assigm to scene objects
@@ -218,15 +215,6 @@
             entity.translate(-5, -20, 0);
         });
 
-        // Create a point light
-        var cyl = new pc.Entity();
-        cyl.addComponent("model", {
-            type: "cylinder"
-        });
-        cyl.model.material = gray;
-        cyl.setLocalPosition(0,10,-2);
-        cyl.setLocalScale(8,10,8);
-
         // Create an Entity with a camera component
         var camera = new pc.Entity();
         camera.addComponent("camera", {
@@ -234,57 +222,8 @@
         });
         camera.translate(0, 7, 24);
         camera.rotate(0, 0, 0);
-/*
-        // Create an Entity for the ground
-        var ground = new pc.Entity();
-        ground.addComponent("model", {
-            type: "box"
-        });
-        ground.setLocalScale(50, 1, 50);
-        ground.setLocalPosition(0, -0.5, 0);
-        ground.model.material = gray;
-/*
-        // Create an spot light
-        var light = new pc.Entity();
-        light.addComponent("light", {
-            type: "spot",
-            color: new pc.Color(1, 1, 1),
-            outerConeAngle: 60,
-            innerConeAngle: 40,
-            range: 100,
-            intensity: 1,
-            castShadows: true,
-            shadowBias: 0.005,
-            normalOffsetBias: 0.01,
-            shadowResolution: 2048
-        });
-
-        var cone = new pc.Entity();
-        cone.addComponent("model", {
-            type: "cone"
-        });
-        cone.model.material = white;
-        light.addChild(cone);
-
-        // Create a point light
-        var pointlight = new pc.Entity();
-        pointlight.addComponent("light", {
-            type: "point",
-            color: new pc.Color(0, 1, 0),
-            range: 100,
-            intensity: 0.01
-        });
-        pointlight.addComponent("model", {
-            type: "sphere"
-        });
-        pointlight.model.material = blue;
-*/
         // Add Entities into the scene hierarchy
         app.root.addChild(camera);
-//        app.root.addChild(light);
-//        app.root.addChild(pointlight);
-//        app.root.addChild(ground);
-        //app.root.addChild(cyl);
 
         // Simple update loop to rotate the light
         var radius = 20;
@@ -323,14 +262,6 @@
             {
                 entity.translate(-1, 0, 0);
             }                        
-            /*else if (e.key === pc.KEY_F) 
-            {
-                focalDepth+=0.5;
-            }        
-            else if (e.key === pc.KEY_C) 
-            {
-                focalDepth-=0.5;
-            }  */
             e.event.preventDefault(); // Use original browser event to prevent browser action.
         };
         var keyboard = new pc.Keyboard(document.body);
@@ -345,18 +276,6 @@
         mouse.on(pc.EVENT_MOUSEMOVE, onMouseMove, this);
 
         app.on("update", function (dt) {
-        /*    angle += 20 * dt;
-            if (angle > 360) {
-                angle -= 360;
-            }
-            if (entity) {
-                light.lookAt(entity.getPosition());
-                light.rotateLocal(90, 0, 0);
-                light.setLocalPosition(radius * Math.sin(angle * pc.math.DEG_TO_RAD), height, radius * Math.cos(angle * pc.math.DEG_TO_RAD));
-                // light.enabled = false;
-
-                pointlight.setLocalPosition(pointRadius * Math.sin(-2 * angle * pc.math.DEG_TO_RAD), pointHeight, 0.0+pointRadius * Math.cos(-2 * angle * pc.math.DEG_TO_RAD));
-            }*/
 
             time+=dt;
             
