@@ -62,7 +62,7 @@
         
         var nodeMaterials={};
         var textures={};
-        var graphPP;
+        var ppGraphs=[];
 
         function getTextureValue(value)
         {
@@ -137,18 +137,50 @@
             {
                 nodeMaterials['ppGraph']._ppDebug=1; // temp debug
 
-                graphPP = new pc.GraphEffect(app.graphicsDevice, nodeMaterials['ppGraph']);
+                var graphPP = new pc.GraphEffect(app.graphicsDevice, nodeMaterials['ppGraph']);
 
                 camera.camera.postEffects.addEffect(graphPP);
+
+                ppGraphs.push(graphPP);
             }
+        }
+
+        function readTextFile(file)
+        {
+            var rawFile = new XMLHttpRequest();
+            rawFile.open("GET", file, false);
+            rawFile.onreadystatechange = function ()
+            {
+                if(rawFile.readyState === 4)
+                {
+                    if(rawFile.status === 200 || rawFile.status == 0)
+                    {
+                        var allText = rawFile.responseText;
+                        setNodeList(allText);
+                    }
+                }
+            }
+            rawFile.send(null);
         }
 
         const url_string = window.location.href;
         const url_options = new URL(url_string);
         const url_nodeList = url_options.searchParams.get("nodeList");
+        const url_ppGraph1 = url_options.searchParams.get("ppGraph1");
+        const url_ppGraph2 = url_options.searchParams.get("ppGraph2");
 
         // set node list if in URL options
         if (url_nodeList) setNodeList(url_nodeList);
+
+        if (url_ppGraph1) 
+        {
+            readTextFile(url_ppGraph1);
+        }
+
+        if (url_ppGraph2) 
+        {
+            readTextFile(url_ppGraph2);
+        }        
 
         function dropHandler(evt) {
             evt.stopPropagation();
@@ -240,9 +272,16 @@
         var onKeyDown = function (e) {
             if (e.key === pc.KEY_SPACE) {
                 if (hasEffects) {
-                    camera.camera.postEffects.removeEffect(graphPP);
+                    for (var pp=0; pp<ppGraphs.length; pp++)
+                    {
+                        var rev_pp=(ppGraphs.length-1)-pp;
+                        camera.camera.postEffects.removeEffect(ppGraphs[rev_pp]);
+                    }
                 } else {
-                    camera.camera.postEffects.addEffect(graphPP);
+                    for (var pp=0; pp<ppGraphs.length; pp++)
+                    {
+                        camera.camera.postEffects.addEffect(ppGraphs[pp]);
+                    }
                 }
                 hasEffects = !hasEffects;
             }
