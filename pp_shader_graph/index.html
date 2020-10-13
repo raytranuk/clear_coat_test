@@ -169,18 +169,7 @@
         const url_ppGraph1 = url_options.searchParams.get("ppGraph1");
         const url_ppGraph2 = url_options.searchParams.get("ppGraph2");
 
-        // set node list if in URL options
-        if (url_nodeList) setNodeList(url_nodeList);
-
-        if (url_ppGraph1) 
-        {
-            readTextFile(url_ppGraph1);
-        }
-
-        if (url_ppGraph2) 
-        {
-            readTextFile(url_ppGraph2);
-        }        
+    
 
         function dropHandler(evt) {
             evt.stopPropagation();
@@ -313,6 +302,18 @@
         };
         var mouse = new pc.Mouse(document.body);
         mouse.on(pc.EVENT_MOUSEMOVE, onMouseMove, this);
+
+        // set node list if in URL options
+        if (url_nodeList) setNodeList(url_nodeList);
+
+        if (url_ppGraph1) 
+        {
+            readTextFile(url_ppGraph1);
+        }
+        if (url_ppGraph2) 
+        {
+            readTextFile(url_ppGraph2);
+        }    
 
         app.on("update", function (dt) {
 
