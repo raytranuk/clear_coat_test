@@ -7,9 +7,7 @@
     <link rel="icon" type="image/png" href="../playcanvas-favicon.png" />
     <!script src="./playcanvas.js"></!script>
     <!script src="./playcanvas-extras.js"></!script>
-    <script src="../../build/playcanvas.js"></script>
-    <script src="../../build/playcanvas-extras.js"></script>
-    <script src="../wasm-loader.js"></script>
+    <script src="./wasm-loader.js"></script>
     <style>
         body { 
             margin: 0;
@@ -26,9 +24,9 @@
         var dracoLoaded=false;
 
         if (wasmSupported()) {
-            loadWasmModuleAsync('DracoDecoderModule', '../lib/draco/draco.wasm.js', '../lib/draco/draco.wasm.wasm', dracoLoadedCallback);
+            loadWasmModuleAsync('DracoDecoderModule', './lib/draco/draco.wasm.js', './lib/draco/draco.wasm.wasm', dracoLoadedCallback);
         } else {
-            loadWasmModuleAsync('DracoDecoderModule', '../lib/draco/draco.js', '', dracoLoadedCallback);
+            loadWasmModuleAsync('DracoDecoderModule', './lib/draco/draco.js', '', dracoLoadedCallback);
         }
         
         function dracoLoadedCallback() {
@@ -50,10 +48,7 @@
     </script>
 
     <!-- Include some post effects -->
-    <script src="../assets/scripts/posteffects/posteffect-bloom.js"></script>
-    <!script src="../assets/scripts/posteffects/posteffect-sepia.js"><!/script>
-    <!script src="../assets/scripts/posteffects/posteffect-vignette.js"><!/script>
-    <script src="../assets/scripts/posteffects/posteffect-graph.js"></script>
+    <script src="./assets/scripts/posteffects/posteffect-graph.js"></script>
     <!-- The script -->
     <script>
         // Start the update loop
@@ -80,11 +75,6 @@
             var textureName = value.base64_name;
 
             textures[textureName] = new pc.Texture( this.app.graphicsDevice, {
-                // minFilter: pc.FILTER_LINEAR,
-                // magFilter: pc.FILTER_LINEAR,
-                // addressU: pc.ADDRESS_CLAMP_TO_EDGE,
-                // addressV: pc.ADDRESS_CLAMP_TO_EDGE,
-                // mipmaps: false
             } );
 
             const img = document.createElement( 'img' );
@@ -217,7 +207,7 @@
         // Load a model file and create a Entity with a model component
         // var url = "../assets/models/statue.glb";
         // var url = "../assets/models/out.glb";
-        var url = "../assets/models/out-draco.glb";
+        var url = "./assets/models/out-draco.glb";
         app.assets.loadFromUrl(url, "container", function (err, asset) {
             entity = new pc.Entity();
             entity.addComponent("model", {
@@ -290,23 +280,6 @@
             type: "sphere"
         });
         pointlight.model.material = blue;
-
- /*       // create some post effects
-        var bloom = new pc.BloomEffect(app.graphicsDevice);
-        bloom.bloomThreshold = 0.1;
-        camera.camera.postEffects.addEffect(bloom);
-
-         var sepia = new pc.SepiaEffect(app.graphicsDevice);
-        sepia.amount = 0.7;
-        camera.camera.postEffects.addEffect(sepia);
-
-        var vignette = new pc.VignetteEffect(app.graphicsDevice);
-        vignette.darkness = 2;
-        camera.camera.postEffects.addEffect(vignette);
-
-        // var bokeh = new pc.BokehEffect(app.graphicsDevice);
-        // bokeh.focus = 0.4;
-        // camera.camera.postEffects.addEffect(bokeh);*/
 
         // Add Entities into the scene hierarchy
         app.root.addChild(camera);
