@@ -29,7 +29,7 @@ Object.assign(pc, function () {
         this.ppOrder = [];
 
         this.ppPorts.forEach((ppPort, pIndex) => {
-            //var ppParams = ppPort.valueString.split(',');
+            // var ppParams = ppPort.valueString.split(',');
 //            this.ppOrder[pIndex] = parseInt(ppParams[0], 10);
             this.ppOrder[pIndex] = ppPort.valueW;
 
@@ -45,8 +45,8 @@ Object.assign(pc, function () {
                 var shaderDefinition = pc.programlib.node.createShaderDefinition(graphicsDevice, options);
                 this.ppShaders[this.ppOrder[pIndex]] = new pc.Shader(graphicsDevice, shaderDefinition);
 
-                var width = graphicsDevice.width;
-                var height = graphicsDevice.height;
+                var width = graphicsDevice.width * ppPort.valueX;
+                var height = graphicsDevice.height * ppPort.valueY;
                 var colorBuffer = new pc.Texture(graphicsDevice, {
                     format: pc.PIXELFORMAT_R8_G8_B8_A8,
                     width: width,
@@ -56,7 +56,7 @@ Object.assign(pc, function () {
                 colorBuffer.magFilter = pc.FILTER_LINEAR;
                 colorBuffer.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
                 colorBuffer.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
-                colorBuffer.name = ppPort.name+'_'+this.ppOrder[pIndex];
+                colorBuffer.name = ppPort.name + '_' + this.ppOrder[pIndex];
                 this.ppTargets[this.ppOrder[pIndex]] = new pc.RenderTarget(graphicsDevice, colorBuffer, { depth: false });
                 this.ppUniformNames[this.ppOrder[pIndex]] = 'IN_' + ppPort.name.substr(4) + '_' + nodeMaterial.id;
             }
