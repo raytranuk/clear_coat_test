@@ -43,11 +43,14 @@
 
         // create the application
         var canvas = document.getElementById("application-canvas");
-        var app = new pc.Application(canvas);
+        var app = new pc.Application(canvas, {
+            mouse: new pc.Mouse(canvas),
+            keyboard: new pc.Keyboard(window)
+        });
     </script>
 
     <!-- Include some post effects -->
-    <script src="./assets/scripts/posteffects/posteffect-graph.js"></script>
+    <script src="../assets/scripts/posteffects/posteffect-graph.js"></script>
     <!-- The script -->
     <script>
         // Start the update loop
@@ -223,7 +226,8 @@
         var entity, light, camera;
 
         // Load a model file and create a Entity with a model component
-        var url = "./assets/models/out.glb";
+        // var url = "../assets/models/out-draco.glb";
+        var url = "../assets/models/city.glb";
         app.assets.loadFromUrl(url, "container", function (err, asset) {
             entity = new pc.Entity();
             entity.addComponent("model", {
@@ -233,18 +237,41 @@
             });
             app.root.addChild(entity);
             //entity.rotate(0, 0, 180);
-            entity.translate(-5, -20, 0);
+            //entity.translate(-5, -20, 0);
+            entity.setLocalScale(0.1, 0.1, 0.1);
         });
+
+        // Create a directional light
+        var light = new pc.Entity();
+        light.addComponent("light", {
+            castShadows: true,
+            color: new pc.Color(1, 1, 1),
+            normalOffsetBias: 0.05,
+            shadowBias: 0.2,
+            shadowDistance: 320,
+            type: "directional",
+            shadowResolution: 2048
+        });
+        app.root.addChild(light);
+        light.setLocalEulerAngles(45, 30, 0);
 
         // Create an Entity with a camera component
         var camera = new pc.Entity();
         camera.addComponent("camera", {
             clearColor: new pc.Color(0.4, 0.45, 0.5)
         });
-        camera.translate(0, 7, 24);
-        camera.rotate(0, 0, 0);
+        camera.translate(39.20, 24.25, -6.19);
+        camera.rotate(-11.25, 90, 0);
         // Add Entities into the scene hierarchy
         app.root.addChild(camera);
+
+        // add the fly camera script to the camera
+        app.assets.loadFromUrl('../assets/scripts/camera/fly-camera.js', 'script', function (err, asset) {
+            camera.addComponent("script");
+            camera.script.create("flyCamera");
+            camera.script.flyCamera.speed *= 1;
+            camera.script.flyCamera.fastSpeed *= 1;
+        });
 
         // Simple update loop to rotate the light
         var radius = 20;
@@ -274,7 +301,7 @@
                 }
                 hasEffects = !hasEffects;
             }
-            else if (e.key === pc.KEY_W) 
+/*            else if (e.key === pc.KEY_W) 
             {
                 entity.translate(0, 0, 1);
             }
@@ -289,15 +316,23 @@
             else if (e.key === pc.KEY_D) 
             {
                 entity.translate(-1, 0, 0);
-            }                        
+            }*/                        
             e.event.preventDefault(); // Use original browser event to prevent browser action.
         };
         var keyboard = new pc.Keyboard(document.body);
         keyboard.on("keydown", onKeyDown, this);
 
         var onMouseMove = function (e) {
-            
-            focalDepth = Math.floor(e.x)+((e.y/3000.0)-Math.floor(e.y/3000.0));
+            if (!pc.Mouse.isPointerLocked()) 
+            {
+                focalDepth = Math.floor(e.x)+((e.y/3000.0)-Math.floor(e.y/3000.0));
+            }
+            else
+            {
+                var e_x=app.graphicsDevice.width/2;
+                var e_y=app.graphicsDevice.height/2;
+                focalDepth = Math.floor(e_x)+((e_y/3000.0)-Math.floor(e_y/3000.0));
+            }
 
         };
         var mouse = new pc.Mouse(document.body);
