@@ -50,7 +50,7 @@
     </script>
 
     <!-- Include some post effects -->
-    <script src="../assets/scripts/posteffects/posteffect-graph.js"></script>
+    <script src="./assets/scripts/posteffects/posteffect-graph.js"></script>
     <!-- The script -->
     <script>
         // Start the update loop
@@ -226,8 +226,8 @@
         var entity, light, camera;
 
         // Load a model file and create a Entity with a model component
-        // var url = "../assets/models/out-draco.glb";
-        var url = "../assets/models/city.glb";
+        // var url = "./assets/models/out-draco.glb";
+        var url = "./assets/models/city.glb";
         app.assets.loadFromUrl(url, "container", function (err, asset) {
             entity = new pc.Entity();
             entity.addComponent("model", {
@@ -266,7 +266,7 @@
         app.root.addChild(camera);
 
         // add the fly camera script to the camera
-        app.assets.loadFromUrl('../assets/scripts/camera/fly-camera.js', 'script', function (err, asset) {
+        app.assets.loadFromUrl('./assets/scripts/camera/fly-camera.js', 'script', function (err, asset) {
             camera.addComponent("script");
             camera.script.create("flyCamera");
             camera.script.flyCamera.speed *= 1;
