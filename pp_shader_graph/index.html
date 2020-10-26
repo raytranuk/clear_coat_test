@@ -67,6 +67,28 @@
         var textures={};
         var ppGraphs=[];
 
+        function ppReadyCheck()
+        {
+            for (var pp=0; pp<ppGraphs.length; pp++)
+            {
+                var ppReady=true;
+                ppGraphs[pp].nodeMaterial.graphData.ioPorts.forEach((ioPort) => {
+                    if (ioPort.valueTex && (ioPort.valueTex instanceof pc.Texture))
+                    {
+                        if (!ioPort.valueTex._ppReady)
+                        {
+                            ppReady=false;
+                        }
+                    }
+                });
+                if (ppReady)
+                {
+                    ppGraphs[pp]._ppReady=true;
+                    camera.camera.postEffects.addEffect(ppGraphs[pp]);
+                }
+            }            
+        }
+
         function getTextureValue(value)
         {
             if (typeof(value) === "string")
@@ -84,7 +106,8 @@
             img.crossOrigin = 'anonymous';
             img.onload = ( e ) => {
                 textures[textureName].setSource( img );
-                // this callback could be a problem?
+                textures[textureName]._ppReady=true;
+                ppReadyCheck();
             };
 
             return textures[textureName];
@@ -142,9 +165,9 @@
 
                 var graphPP = new pc.GraphEffect(app.graphicsDevice, nodeMaterials['ppGraph']);
 
-                camera.camera.postEffects.addEffect(graphPP);
-
                 ppGraphs.push(graphPP);
+
+                ppReadyCheck();
             }
         }
 
