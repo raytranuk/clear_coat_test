@@ -98,17 +98,19 @@
 
             var textureName = value.base64_name;
 
-            textures[textureName] = new pc.Texture( this.app.graphicsDevice, {
-            } );
+            if (!textures[textureName])
+            {
+                textures[textureName] = new pc.Texture( this.app.graphicsDevice, {} );
 
-            const img = document.createElement( 'img' );
-            img.src = value.base64_data;
-            img.crossOrigin = 'anonymous';
-            img.onload = ( e ) => {
-                textures[textureName].setSource( img );
-                textures[textureName]._ppReady=true;
-                ppReadyCheck();
-            };
+                const img = document.createElement( 'img' );
+                img.src = value.base64_data;
+                img.crossOrigin = 'anonymous';
+                img.onload = ( e ) => {
+                    textures[textureName].setSource( img );
+                    textures[textureName]._ppReady=true;
+                    ppReadyCheck();
+                };
+            }
 
             return textures[textureName];
         }
