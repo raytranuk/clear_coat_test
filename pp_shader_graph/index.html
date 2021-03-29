@@ -45,6 +45,7 @@
         var canvas = document.getElementById("application-canvas");
         var app = new pc.Application(canvas, {
             mouse: new pc.Mouse(canvas),
+            touch: new pc.TouchDevice(canvas),
             keyboard: new pc.Keyboard(window)
         });
     </script>
@@ -297,6 +298,7 @@
         app.assets.loadFromUrl('./assets/scripts/camera/fly-camera.js', 'script', function (err, asset) {
             camera.addComponent("script");
             camera.script.create("flyCamera");
+            camera.script.flyCamera.mode = 1;
             camera.script.flyCamera.speed *= 1;
             camera.script.flyCamera.fastSpeed *= 1;
         });
@@ -350,21 +352,90 @@
         var keyboard = new pc.Keyboard(document.body);
         keyboard.on("keydown", onKeyDown, this);
 
+        var lookButtonDown;
+        var panButtonDown;
+
+        var onMouseDown = function (e) {
+            switch (e.button) {
+                case pc.MOUSEBUTTON_LEFT:
+                    lookButtonDown = true;
+                    break;
+                case pc.MOUSEBUTTON_MIDDLE:
+                case pc.MOUSEBUTTON_RIGHT:
+                    panButtonDown = true;
+                    break;
+            }        
+        };
+
+        var onMouseUp = function (e) {
+            switch (e.button) {
+                case pc.MOUSEBUTTON_LEFT:
+                    focalDepth = Math.floor(e.x)+((e.y/3000.0)-Math.floor(e.y/3000.0));
+                    lookButtonDown = false;
+                    break;
+                case pc.MOUSEBUTTON_MIDDLE:
+                case pc.MOUSEBUTTON_RIGHT:
+                    panButtonDown = false;
+                    break;
+            }        
+        };
+
         var onMouseMove = function (e) {
-            if (!pc.Mouse.isPointerLocked()) 
+            //if (!pc.Mouse.isPointerLocked()) 
+            if (lookButtonDown) 
             {
                 focalDepth = Math.floor(e.x)+((e.y/3000.0)-Math.floor(e.y/3000.0));
             }
-            else
+            /*if (lookButtonDown) 
             {
                 var e_x=app.graphicsDevice.width/2;
                 var e_y=app.graphicsDevice.height/2;
                 focalDepth = Math.floor(e_x)+((e_y/3000.0)-Math.floor(e_y/3000.0));
-            }
-
+            }*/
         };
-        var mouse = new pc.Mouse(document.body);
-        mouse.on(pc.EVENT_MOUSEMOVE, onMouseMove, this);
+        
+        var lastTouchPointX;
+        var lastTouchPointY;
+
+        var onTouchStartEndCancel = function (e) {
+            var touches = e.touches;
+            if (touches.length == 1) {
+                var touch = touches[0];
+
+                lastTouchPointX = touch.x;
+                lastTouchPointY = touch.y;
+
+                focalDepth = Math.floor(touch.x)+((touch.y/3000.0)-Math.floor(touch.y/3000.0));
+            }
+        };
+
+        var onTouchMove = function (e) {
+            var touches = e.touches;
+            if (touches.length == 1) {
+                var touch = touches[0];
+
+                var dx = (touch.x - lastTouchPointX);
+                var dy = (touch.y - lastTouchPointY);
+
+                camera.script.flyCamera.ex += dy / 5;
+                camera.script.flyCamera.ex = pc.math.clamp(camera.script.flyCamera.ex, -90, 90);
+                camera.script.flyCamera.ey += dx / 5;
+
+                lastTouchPointX = touch.x;
+                lastTouchPointY = touch.y;
+
+                focalDepth = Math.floor(touch.x)+((touch.y/3000.0)-Math.floor(touch.y/3000.0));
+            }
+        };
+
+        app.mouse.on(pc.EVENT_MOUSEDOWN, onMouseDown, this);
+        app.mouse.on(pc.EVENT_MOUSEUP, onMouseUp, this);
+        app.mouse.on(pc.EVENT_MOUSEMOVE, onMouseMove, this);
+
+        app.touch.on(pc.EVENT_TOUCHSTART, onTouchStartEndCancel, this);
+        app.touch.on(pc.EVENT_TOUCHEND, onTouchStartEndCancel, this);
+        app.touch.on(pc.EVENT_TOUCHCANCEL, onTouchStartEndCancel, this);
+        app.touch.on(pc.EVENT_TOUCHMOVE, onTouchMove, this);
 
         // set node list if in URL options
         if (url_nodeList) setNodeList(url_nodeList);
