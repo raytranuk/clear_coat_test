@@ -251,8 +251,9 @@
         var entity, light, camera;
 
         // Load a model file and create a Entity with a model component
-        var url = "./assets/models/out_minecraft-draco.glb";
+        //var url = "./assets/models/out_minecraft-draco.glb";
         //var url = "./assets/models/city.glb";
+        var url = "./assets/models/cyber-city-2099.glb";
         app.assets.loadFromUrl(url, "container", function (err, asset) {
             entity = new pc.Entity();
             entity.addComponent("model", {
@@ -262,15 +263,17 @@
             });
             app.root.addChild(entity);
             //entity.rotate(0, 0, 180);
-            entity.translate(-5, -24, -60);
-            //entity.setLocalScale(0.1, 0.1, 0.1);
+            //entity.translate(-5, -24, -60);
+            entity.translate(-23, -22, -35);
+            entity.setLocalScale(0.4, 0.4, 0.4);
         });
 
         // Create a directional light
-        /*var light = new pc.Entity();
+        var light = new pc.Entity();
         light.addComponent("light", {
             castShadows: true,
-            color: new pc.Color(1, 1, 1),
+            color: new pc.Color(0.7, 0.7, 1.0),
+            intensity: 0.5,
             normalOffsetBias: 0.05,
             shadowBias: 0.2,
             shadowDistance: 320,
@@ -278,12 +281,12 @@
             shadowResolution: 2048
         });
         app.root.addChild(light);
-        light.setLocalEulerAngles(45, 30, 0);*/
+        light.setLocalEulerAngles(45, 30, 0);
 
         // Create an Entity with a camera component
         var camera = new pc.Entity();
         camera.addComponent("camera", {
-            clearColor: new pc.Color(0.4, 0.45, 0.5)
+            clearColor: new pc.Color(0.1, 0.12, 0.15)
         });
         //camera.translate(39.20, 24.25, -6.19);
         //camera.rotate(-11.25, 90, 0);
