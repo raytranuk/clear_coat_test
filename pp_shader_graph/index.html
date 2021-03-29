@@ -262,12 +262,12 @@
             });
             app.root.addChild(entity);
             //entity.rotate(0, 0, 180);
-            //entity.translate(-5, -20, 0);
-            entity.setLocalScale(0.1, 0.1, 0.1);
+            entity.translate(-5, -24, -60);
+            //entity.setLocalScale(0.1, 0.1, 0.1);
         });
 
         // Create a directional light
-        var light = new pc.Entity();
+        /*var light = new pc.Entity();
         light.addComponent("light", {
             castShadows: true,
             color: new pc.Color(1, 1, 1),
@@ -278,15 +278,15 @@
             shadowResolution: 2048
         });
         app.root.addChild(light);
-        light.setLocalEulerAngles(45, 30, 0);
+        light.setLocalEulerAngles(45, 30, 0);*/
 
         // Create an Entity with a camera component
         var camera = new pc.Entity();
         camera.addComponent("camera", {
             clearColor: new pc.Color(0.4, 0.45, 0.5)
         });
-        camera.translate(39.20, 24.25, -6.19);
-        camera.rotate(-11.25, 90, 0);
+        //camera.translate(39.20, 24.25, -6.19);
+        //camera.rotate(-11.25, 90, 0);
         // Add Entities into the scene hierarchy
         app.root.addChild(camera);
 
