@@ -69,17 +69,21 @@ FlyCamera.prototype.onMouseMove = function (event) {
         if (!this.lmbDown)
             return;
     }
-
-
     // Update the current Euler angles, clamp the pitch.
     if (!this.moved) {
         // first move event can be very large
         this.moved = true;
         return;
     }
-    this.ex -= event.dy / 5;
-    this.ex = pc.math.clamp(this.ex, -90, 90);
-    this.ey -= event.dx / 5;
+    if (this.mode) {
+        this.ex += event.dy / 10;
+        this.ex = pc.math.clamp(this.ex, -90, 90);
+        this.ey += event.dx / 10;
+    } else {
+        this.ex -= event.dy / 5;
+        this.ex = pc.math.clamp(this.ex, -90, 90);
+        this.ey -= event.dx / 5;
+    }
 };
 
 FlyCamera.prototype.onMouseDown = function (event) {
